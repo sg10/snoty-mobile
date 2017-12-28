@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="me.snoty.mobile.MainActivity">
+    tools:context="me.snoty.mobile.activities.MainActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -33,11 +33,13 @@
             tools:layout_editor_absoluteX="8dp"
             tools:layout_editor_absoluteY="230dp" />
 
-        <TextView
-            android:id="@+id/logView"
+        <ListView
+            android:id="@+id/notificationsHistoryList"
             android:layout_width="match_parent"
-            android:layout_height="334dp"
-            android:text="TextView" />
+            android:layout_height="match_parent"
+            android:layout_marginBottom="40sp"
+            android:layout_marginTop="30sp" />
+
     </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>

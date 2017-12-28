@@ -6,7 +6,7 @@ package me.snoty.mobile.notifications
 class Repository {
 
     companion object {
-        var log: String = ""
+        var log: String = "-"
     }
 
 }
