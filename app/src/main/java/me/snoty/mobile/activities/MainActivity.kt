@@ -1,6 +1,8 @@
 package me.snoty.mobile.activities
 
+import android.annotation.SuppressLint
 import android.app.Notification
+import android.app.NotificationManager
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
@@ -10,27 +12,30 @@ import android.widget.TextView
 import me.snoty.mobile.notifications.Listener
 import me.snoty.mobile.notifications.Repository
 import android.content.ComponentName
+import android.content.Context
 import android.os.Build
 import android.provider.Settings
 import android.widget.ListView
 import android.widget.Toast
 import me.snoty.mobile.R
+import me.snoty.mobile.plugins.DebugNotification
 import me.snoty.mobile.plugins.PluginInterface
 
 
 class MainActivity : AppCompatActivity(), PluginInterface {
-    override val commandFilter = null
 
     private val TAG = "MainActivity"
 
     private var listAdapter : NotificationsListAdapter? = null
+
+    private val debugNotification = DebugNotification(this)
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val listView : ListView = findViewById<ListView>(R.id.notificationsHistoryList)
+        val listView : ListView = findViewById(R.id.notificationsHistoryList)
         listAdapter = NotificationsListAdapter(this)
         listView.adapter = listAdapter
 
@@ -38,11 +43,12 @@ class MainActivity : AppCompatActivity(), PluginInterface {
         startServiceButton.setOnClickListener {
             if (!isPermissionGranted()) {
                 val toast = Toast.makeText(this, "Listener Permission NOT granted", Toast.LENGTH_LONG)
-                startActivity( Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS));
+                startActivity( Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
                 toast.show()
             }
             else {
                 Listener.addPlugin(this)
+                Listener.addPlugin(debugNotification)
                 startListener()
             }
         }
@@ -66,7 +72,9 @@ class MainActivity : AppCompatActivity(), PluginInterface {
     }
 
     override fun posted(n : Notification) {
+
         listAdapter?.add(n)
+
     }
 
     override fun removed(n : Notification) {

@@ -29,11 +29,14 @@ import me.snoty.mobile.plugins.PluginInterface
 class Listener : NotificationListenerService() {
 
     private val TAG = "ListenerService"
-    private val channelId : String = "SnotyService"
-
-    private var serviceNotificationId: Int = 98742
-
     companion object {
+
+        var serviceNotificationId: Int = 98742
+        val channelId : String = "SnotyService"
+
+        var countPosted = 0
+        var countRemoved = 0
+
         private var instance: Listener? = null
 
         private val pluginsList : ArrayList<PluginInterface> = ArrayList()
@@ -116,7 +119,11 @@ class Listener : NotificationListenerService() {
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
+        if(sbn?.packageName == this.packageName) return
+
         Log.d(TAG, "NOTIFICATION POSTED")
+
+        countPosted++
 
         for(plugin in Listener.pluginsList) {
             if(plugin.isApplicable("command") && sbn?.notification != null) {
@@ -136,7 +143,11 @@ class Listener : NotificationListenerService() {
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?, rankingMap: RankingMap?, reason: Int) {
+        if(sbn?.packageName == this.packageName) return
+
         Log.d(TAG, "NOTIFICATION REMOVED")
+
+        countRemoved++
 
         for(plugin in Listener.pluginsList) {
             if(plugin.isApplicable("command") && sbn?.notification != null) {

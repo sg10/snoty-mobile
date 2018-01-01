@@ -7,10 +7,8 @@ import android.app.Notification
  */
 interface PluginInterface {
 
-    val commandFilter : String?
-
     fun isApplicable(command : String) : Boolean {
-        return this.commandFilter == null || this.commandFilter.equals(command)
+        return true
     }
 
     fun posted(n : Notification)
