@@ -1,6 +1,7 @@
 package me.snoty.mobile.notifications
 
 import android.annotation.SuppressLint
+import android.app.Notification
 import android.content.Intent
 import android.os.IBinder
 import android.service.notification.NotificationListenerService
@@ -38,14 +39,6 @@ class Listener : NotificationListenerService() {
         var countRemoved = 0
 
         private var instance: Listener? = null
-
-        private val pluginsList : ArrayList<PluginInterface> = ArrayList()
-
-        fun addPlugin(plugin : PluginInterface) {
-            if(!pluginsList.contains(plugin)) {
-                pluginsList.add(plugin)
-            }
-        }
 
         fun stop() {
             if (android.os.Build.VERSION.SDK_INT >= 24) {
@@ -107,6 +100,7 @@ class Listener : NotificationListenerService() {
         this.startForeground(serviceNotificationId, mNotifyBuilder.build())
 
         if (android.os.Build.VERSION.SDK_INT >= 24) {
+            Log.d(TAG, "requesting rebind ...")
             val componentName = ComponentName(applicationContext, Listener::class.java)
             requestRebind(componentName)
         }
@@ -121,38 +115,20 @@ class Listener : NotificationListenerService() {
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         if(sbn?.packageName == this.packageName) return
 
-        Log.d(TAG, "NOTIFICATION POSTED")
-
         countPosted++
 
-        for(plugin in Listener.pluginsList) {
-            if(plugin.isApplicable("command") && sbn?.notification != null) {
-                plugin.posted(sbn?.notification)
-            }
+        if(sbn != null) {
+            Repository.instance.add(sbn)
         }
-
-        val extras = sbn?.notification?.extras
-
-        val notificationSummary = sbn?.packageName + "\n" +
-                extras?.getString("android.title") + "\n" +
-                extras?.getString("android.text")
-
-        Log.d(TAG, notificationSummary)
-
-        Repository.log = notificationSummary + "\n\n" + Repository.log
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?, rankingMap: RankingMap?, reason: Int) {
         if(sbn?.packageName == this.packageName) return
 
-        Log.d(TAG, "NOTIFICATION REMOVED")
-
         countRemoved++
 
-        for(plugin in Listener.pluginsList) {
-            if(plugin.isApplicable("command") && sbn?.notification != null) {
-                plugin.removed(sbn?.notification)
-            }
+        if(sbn != null) {
+            Repository.instance.remove(sbn)
         }
     }
 

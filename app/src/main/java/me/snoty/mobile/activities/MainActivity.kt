@@ -1,23 +1,19 @@
 package me.snoty.mobile.activities
 
-import android.annotation.SuppressLint
-import android.app.Notification
-import android.app.NotificationManager
+import android.content.ComponentName
 import android.content.Intent
-import android.support.v7.app.AppCompatActivity
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
+import android.service.notification.StatusBarNotification
+import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.Button
-import android.widget.TextView
-import me.snoty.mobile.notifications.Listener
-import me.snoty.mobile.notifications.Repository
-import android.content.ComponentName
-import android.content.Context
-import android.os.Build
-import android.provider.Settings
 import android.widget.ListView
 import android.widget.Toast
 import me.snoty.mobile.R
+import me.snoty.mobile.notifications.Listener
+import me.snoty.mobile.notifications.Repository
 import me.snoty.mobile.plugins.DebugNotification
 import me.snoty.mobile.plugins.PluginInterface
 
@@ -47,8 +43,8 @@ class MainActivity : AppCompatActivity(), PluginInterface {
                 toast.show()
             }
             else {
-                Listener.addPlugin(this)
-                Listener.addPlugin(debugNotification)
+                Repository.addPlugin(this)
+                Repository.addPlugin(debugNotification)
                 startListener()
             }
         }
@@ -71,14 +67,15 @@ class MainActivity : AppCompatActivity(), PluginInterface {
         }
     }
 
-    override fun posted(n : Notification) {
+    override fun updated(id : String, sbn : StatusBarNotification) {
+    }
 
-        listAdapter?.add(n)
+    override fun removed(id : String, sbn : StatusBarNotification) {
 
     }
 
-    override fun removed(n : Notification) {
-
+    override fun created(id: String, sbn: StatusBarNotification) {
+        listAdapter?.add(sbn.notification)
     }
 
 

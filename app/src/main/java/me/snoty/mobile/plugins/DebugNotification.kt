@@ -5,6 +5,7 @@ import android.app.Notification
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
+import android.service.notification.StatusBarNotification
 import android.support.v4.app.NotificationCompat
 import me.snoty.mobile.R
 import me.snoty.mobile.notifications.Listener
@@ -17,11 +18,15 @@ class DebugNotification(context : Context) : PluginInterface {
 
     private val context : Context = context
 
-    override fun posted(n: Notification) {
+    override fun created(id : String, sbn : StatusBarNotification) {
         updateServiceNotification()
     }
 
-    override fun removed(n: Notification) {
+    override fun removed(id : String, sbn : StatusBarNotification) {
+        updateServiceNotification()
+    }
+
+    override fun updated(id : String, sbn : StatusBarNotification) {
         updateServiceNotification()
     }
 
