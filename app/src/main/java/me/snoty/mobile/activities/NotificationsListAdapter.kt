@@ -39,8 +39,13 @@ class NotificationsListAdapter(context: Context) : ArrayAdapter<Notification>(co
             val text = v!!.findViewById(R.id.textTextView) as TextView
             val icon = v!!.findViewById(R.id.icon) as ImageView
 
-            title?.text = notification.extras?.getString("android.title")
-            text?.text = notification.extras?.getString("android.text")
+
+            val nTitle = notification.extras?.get(Notification.EXTRA_TITLE)?.toString()
+            val nText = notification.extras?.get(Notification.EXTRA_TEXT)?.toString()
+
+            title.text = nTitle
+            text.text = nText
+
             //icon?.setImageIcon(notification.)
         }
 

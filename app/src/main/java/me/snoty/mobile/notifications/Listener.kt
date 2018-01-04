@@ -1,27 +1,20 @@
 package me.snoty.mobile.notifications
 
 import android.annotation.SuppressLint
-import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.os.IBinder
+import android.preference.PreferenceManager
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.support.v4.app.NotificationCompat
 import android.support.v4.app.NotificationManagerCompat
 import android.util.Log
 import me.snoty.mobile.R
-import android.app.NotificationManager
-import android.app.NotificationChannel
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.graphics.Color
-import android.os.Build
-import android.support.annotation.RequiresApi
-import android.provider.Settings.Secure
-import android.content.ComponentName
-import android.provider.Settings
-import android.widget.Toast
-import me.snoty.mobile.plugins.PluginInterface
+import kotlin.properties.Delegates
 
 
 /**
@@ -30,6 +23,9 @@ import me.snoty.mobile.plugins.PluginInterface
 class Listener : NotificationListenerService() {
 
     private val TAG = "ListenerService"
+
+    private var filter : Filter? = null
+
     companion object {
 
         var serviceNotificationId: Int = 98742
@@ -63,6 +59,9 @@ class Listener : NotificationListenerService() {
     override fun onCreate() {
         Log.d(TAG, "listener created")
         instance = this
+        if(filter == null) {
+            filter = Filter(this)
+        }
         super.onCreate()
     }
 
@@ -110,10 +109,14 @@ class Listener : NotificationListenerService() {
 
     override fun onListenerConnected() {
         Log.d(TAG, "Listener connected")
+        super.onListenerConnected()
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
-        if(sbn?.packageName == this.packageName) return
+        if(filter!!.shouldIgnore(sbn)) {
+            Log.d(TAG, "IGNORING " + sbn?.packageName)
+            return
+        }
 
         countPosted++
 

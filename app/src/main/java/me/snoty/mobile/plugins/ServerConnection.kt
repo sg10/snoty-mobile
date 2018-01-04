@@ -3,8 +3,6 @@ package me.snoty.mobile.plugins
 import android.service.notification.StatusBarNotification
 import javax.net.SocketFactory
 import javax.net.ssl.*
-import android.system.Os.socket
-import com.sun.xml.internal.ws.streaming.XMLStreamWriterUtil.getOutputStream
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.InputStreamReader

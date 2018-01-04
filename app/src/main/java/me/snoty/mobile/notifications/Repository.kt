@@ -4,6 +4,8 @@ import android.app.Notification
 import android.os.AsyncTask
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import me.snoty.mobile.plugins.DebugNotification
+import me.snoty.mobile.plugins.DebugPost
 import me.snoty.mobile.plugins.PluginInterface
 
 /**
@@ -11,23 +13,32 @@ import me.snoty.mobile.plugins.PluginInterface
  */
 class Repository private constructor(){
 
-    private val TAG = "NotificationRepo"
-
-    init { println("($this) is the notifications repository") }
+    init {
+        Log.d(TAG, "initializing repository")
+        addPlugin(DebugPost())
+    }
 
     private object Holder { val INSTANCE = Repository() }
 
     private var map : HashMap<String, StatusBarNotification> = HashMap()
 
     companion object {
+        private val TAG = "NotificationRepo"
+
         val instance: Repository by lazy { Holder.INSTANCE }
 
         private val pluginsList : ArrayList<PluginInterface> = ArrayList()
 
         fun addPlugin(plugin : PluginInterface) {
-            if(!pluginsList.contains(plugin)) {
-                pluginsList.add(plugin)
+            pluginsList.forEach {
+                val className = it::class.java.simpleName
+                if(className == plugin::class.java.simpleName) {
+                    Log.d(TAG, "Plugin $className was already added, deleting first")
+                    pluginsList.remove(it)
+                }
             }
+            pluginsList.add(plugin)
+            Log.d(TAG, "Plugin loaded: " + plugin::class.java.simpleName)
         }
     }
 
@@ -48,10 +59,10 @@ class Repository private constructor(){
 
     fun remove(sbn : StatusBarNotification) {
         val id = getNotificationId(sbn)
-        Log.d(TAG, "REMOVED notification\n"+getSummary(sbn))
-        map.remove(id)
-
-        pluginsList.forEach { it.removed(id, sbn) }
+        if(map.remove(id) != null) {
+            Log.d(TAG, "REMOVED notification\n"+getSummary(sbn))
+            pluginsList.forEach { it.removed(id, sbn) }
+        }
     }
 
     private fun getNotificationId(sbn : StatusBarNotification) : String {
@@ -60,9 +71,9 @@ class Repository private constructor(){
 
     private fun getSummary(sbn : StatusBarNotification) : String {
         val extras = sbn?.notification?.extras
-        return getNotificationId(sbn) + "\t" +
-                extras?.getString(Notification.EXTRA_TITLE) + "\t" +
-                extras?.getString(Notification.EXTRA_TEXT)
+        val title = extras?.get(Notification.EXTRA_TITLE)?.toString()
+        val text = extras?.get(Notification.EXTRA_TEXT)?.toString()
+        return getNotificationId(sbn) + "\t" + title + "\t" + text
     }
 
 }
