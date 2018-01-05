@@ -1,4 +1,4 @@
-package me.snoty.mobile.plugins
+package me.snoty.mobile.processors
 
 import android.service.notification.StatusBarNotification
 import javax.net.SocketFactory
@@ -12,7 +12,7 @@ import java.io.OutputStreamWriter
 /**
  * Created by Stefan on 02.01.2018.
  */
-class ServerConnection : PluginInterface {
+class ServerConnection : ProcessorInterface {
 
     private var socket : SSLSocket? = null
 

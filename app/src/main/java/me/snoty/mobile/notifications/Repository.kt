@@ -1,12 +1,10 @@
 package me.snoty.mobile.notifications
 
 import android.app.Notification
-import android.os.AsyncTask
 import android.service.notification.StatusBarNotification
 import android.util.Log
-import me.snoty.mobile.plugins.DebugNotification
-import me.snoty.mobile.plugins.DebugPost
-import me.snoty.mobile.plugins.PluginInterface
+import me.snoty.mobile.processors.DebugPost
+import me.snoty.mobile.processors.ProcessorInterface
 
 /**
  * Created by Stefan on 27.12.2017.
@@ -15,7 +13,7 @@ class Repository private constructor(){
 
     init {
         Log.d(TAG, "initializing repository")
-        addPlugin(DebugPost())
+        addProcessor(DebugPost())
     }
 
     private object Holder { val INSTANCE = Repository() }
@@ -27,18 +25,22 @@ class Repository private constructor(){
 
         val instance: Repository by lazy { Holder.INSTANCE }
 
-        private val pluginsList : ArrayList<PluginInterface> = ArrayList()
+        private val processorsList: ArrayList<ProcessorInterface> = ArrayList()
 
-        fun addPlugin(plugin : PluginInterface) {
-            pluginsList.forEach {
+        fun addProcessor(processor: ProcessorInterface) {
+            removeProcessor(processor)
+            processorsList.add(processor)
+            Log.d(TAG, "Plugin loaded: " + processor::class.java.simpleName)
+        }
+
+        fun removeProcessor(processor: ProcessorInterface) {
+            processorsList.forEach {
                 val className = it::class.java.simpleName
-                if(className == plugin::class.java.simpleName) {
+                if(className == processor::class.java.simpleName) {
                     Log.d(TAG, "Plugin $className was already added, deleting first")
-                    pluginsList.remove(it)
+                    processorsList.remove(it)
                 }
             }
-            pluginsList.add(plugin)
-            Log.d(TAG, "Plugin loaded: " + plugin::class.java.simpleName)
         }
     }
 
@@ -48,11 +50,11 @@ class Repository private constructor(){
         map[id] = sbn
 
         if(updated) {
-            pluginsList.forEach { it.updated(id, sbn) }
+            processorsList.forEach { it.updated(id, sbn) }
             Log.d(TAG, "UPDATED notification\n"+getSummary(sbn))
         }
         else {
-            pluginsList.forEach { it.created(id, sbn) }
+            processorsList.forEach { it.created(id, sbn) }
             Log.d(TAG, "CREATED notification\n"+getSummary(sbn))
         }
     }
@@ -61,7 +63,7 @@ class Repository private constructor(){
         val id = getNotificationId(sbn)
         if(map.remove(id) != null) {
             Log.d(TAG, "REMOVED notification\n"+getSummary(sbn))
-            pluginsList.forEach { it.removed(id, sbn) }
+            processorsList.forEach { it.removed(id, sbn) }
         }
     }
 

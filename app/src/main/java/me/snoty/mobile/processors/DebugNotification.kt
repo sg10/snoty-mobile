@@ -1,32 +1,40 @@
-package me.snoty.mobile.plugins
+package me.snoty.mobile.processors
 
 import android.annotation.SuppressLint
-import android.app.Notification
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.service.notification.StatusBarNotification
 import android.support.v4.app.NotificationCompat
 import me.snoty.mobile.R
+import me.snoty.mobile.activities.MainActivity
 import me.snoty.mobile.notifications.Listener
-import me.snoty.mobile.notifications.Repository
+
 
 /**
  * Created by Stefan on 01.01.2018.
  */
-class DebugNotification(context : Context) : PluginInterface {
+class DebugNotification(context : Context) : ProcessorInterface {
 
     private val context : Context = context
+    private var countPosted = 0
+    private var countRemoved = 0
+    private var countUpdated = 0
 
     override fun created(id : String, sbn : StatusBarNotification) {
+        countPosted++
         updateServiceNotification()
     }
 
     override fun removed(id : String, sbn : StatusBarNotification) {
+        countRemoved++
         updateServiceNotification()
     }
 
     override fun updated(id : String, sbn : StatusBarNotification) {
+        countRemoved++
         updateServiceNotification()
     }
 
@@ -35,14 +43,19 @@ class DebugNotification(context : Context) : PluginInterface {
         if (Build.VERSION.SDK_INT >= 23) {
             val mNotificationManager = this.context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-            val notificationText = "Posted: "+Listener.countPosted+", Removed: "+Listener.countRemoved
-            val mNotifyBuilder = NotificationCompat.Builder(context, Listener.channelId)
+            val notificationText = "Posted: $countPosted, Updated: $countUpdated, Removed: $countRemoved"
+            val mNotifyBuilder = NotificationCompat.Builder(context, Listener.SERVICE_CHANNEL_ID)
             mNotifyBuilder.setOngoing(true)
             mNotifyBuilder.mContentTitle = "Snoty Notification Listener"
             mNotifyBuilder.mContentText = notificationText
             mNotifyBuilder.setSmallIcon(R.drawable.notification_icon_background)
 
-            mNotificationManager.notify(Listener.serviceNotificationId, mNotifyBuilder.build())
+            val notificationIntent = Intent(context, MainActivity::class.java)
+            notificationIntent.addCategory(Intent.CATEGORY_LAUNCHER)
+            notificationIntent.action = Intent.ACTION_MAIN
+
+            mNotifyBuilder.setContentIntent(PendingIntent.getActivity(context, 0, notificationIntent, 0))
+            mNotificationManager.notify(Listener.SERVICE_NOTIFICATION_ID, mNotifyBuilder.build())
         }
     }
 

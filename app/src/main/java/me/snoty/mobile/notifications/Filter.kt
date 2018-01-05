@@ -1,12 +1,13 @@
 package me.snoty.mobile.notifications
 
-import android.app.Activity
+import android.app.Notification
 import android.content.Context
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
 import android.service.notification.StatusBarNotification
 import android.text.TextUtils
 import android.util.Log
+import me.snoty.mobile.R
 import kotlin.properties.Delegates
 
 /**
@@ -16,8 +17,8 @@ class Filter(private val context : Context) {
 
     private val TAG = "Filter"
 
-    private val PREF_PACKAGES = "IGNORED_PACKAGES"
-    private val PREF_NOCLEAR = "IGNORE_NO_CLEAR"
+    private var PREF_PACKAGES = ""
+    private var PREF_NOCLEAR = ""
 
     private var mPref : SharedPreferences by Delegates.notNull()
 
@@ -30,6 +31,9 @@ class Filter(private val context : Context) {
     }
 
     fun load() {
+        PREF_PACKAGES = context.getString(R.string.preference_ignored_packages_key)
+        PREF_NOCLEAR = context.getString(R.string.preference_noclear_key)
+
         Log.d(TAG, " --- Loading Notifications Filter ---")
 
         val ignoredPackagesString = mPref.getString(PREF_PACKAGES, "android")
@@ -49,7 +53,9 @@ class Filter(private val context : Context) {
     }
 
     fun shouldIgnore(sbn : StatusBarNotification?) : Boolean {
-        if(sbn?.packageName == context.packageName) {
+
+        if(sbn?.packageName == context.packageName &&
+                sbn?.notification?.extras?.getInt(Notification.EXTRA_NOTIFICATION_ID) == Listener.SERVICE_NOTIFICATION_ID) {
             return true
         }
         if(sbn == null || ignoredPackages.contains(sbn?.packageName)) {

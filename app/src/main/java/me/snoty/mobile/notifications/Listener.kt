@@ -7,14 +7,12 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
-import android.preference.PreferenceManager
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.support.v4.app.NotificationCompat
 import android.support.v4.app.NotificationManagerCompat
 import android.util.Log
 import me.snoty.mobile.R
-import kotlin.properties.Delegates
 
 
 /**
@@ -28,11 +26,8 @@ class Listener : NotificationListenerService() {
 
     companion object {
 
-        var serviceNotificationId: Int = 98742
-        val channelId : String = "SnotyService"
-
-        var countPosted = 0
-        var countRemoved = 0
+        val SERVICE_NOTIFICATION_ID: Int = 98742
+        val SERVICE_CHANNEL_ID: String = "Notification Listener Service"
 
         private var instance: Listener? = null
 
@@ -69,16 +64,16 @@ class Listener : NotificationListenerService() {
     private fun registerNotificationChannel(context: Context) {
         if (android.os.Build.VERSION.SDK_INT >= 26) {
             val mngr = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            if (mngr.getNotificationChannel(channelId) != null) {
+            if (mngr.getNotificationChannel(SERVICE_CHANNEL_ID) != null) {
                 return
             }
             //
             val channel = NotificationChannel(
-                    channelId,
-                    channelId,
-                    NotificationManager.IMPORTANCE_LOW)
+                    SERVICE_CHANNEL_ID,
+                    SERVICE_CHANNEL_ID,
+                    NotificationManager.IMPORTANCE_HIGH)
             // Configure the notification channel.
-            channel.description = channelId
+            channel.description = SERVICE_CHANNEL_ID
             channel.enableLights(false)
             channel.enableVibration(false)
             mngr.createNotificationChannel(channel)
@@ -90,13 +85,13 @@ class Listener : NotificationListenerService() {
 
         registerNotificationChannel(this)
 
-        val mNotifyBuilder = NotificationCompat.Builder(this, channelId)
+        val mNotifyBuilder = NotificationCompat.Builder(this, SERVICE_CHANNEL_ID)
         mNotifyBuilder.setOngoing(true)
         mNotifyBuilder.mContentTitle = "Snoty Notification Listener"
         mNotifyBuilder.mContentText = "Service up and running ..."
         mNotifyBuilder.setSmallIcon(R.drawable.notification_icon_background)
 
-        this.startForeground(serviceNotificationId, mNotifyBuilder.build())
+        this.startForeground(SERVICE_NOTIFICATION_ID, mNotifyBuilder.build())
 
         if (android.os.Build.VERSION.SDK_INT >= 24) {
             Log.d(TAG, "requesting rebind ...")
@@ -118,8 +113,6 @@ class Listener : NotificationListenerService() {
             return
         }
 
-        countPosted++
-
         if(sbn != null) {
             Repository.instance.add(sbn)
         }
@@ -127,8 +120,6 @@ class Listener : NotificationListenerService() {
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?, rankingMap: RankingMap?, reason: Int) {
         if(sbn?.packageName == this.packageName) return
-
-        countRemoved++
 
         if(sbn != null) {
             Repository.instance.remove(sbn)
@@ -138,7 +129,7 @@ class Listener : NotificationListenerService() {
     override fun onDestroy() {
         Log.d(TAG, "stopping service ...")
 
-        NotificationManagerCompat.from(this).cancel(serviceNotificationId)
+        NotificationManagerCompat.from(this).cancel(SERVICE_NOTIFICATION_ID)
 
         stopForeground(true)
 

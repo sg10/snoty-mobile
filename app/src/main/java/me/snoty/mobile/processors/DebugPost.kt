@@ -1,4 +1,4 @@
-package me.snoty.mobile.plugins
+package me.snoty.mobile.processors
 
 import android.app.Notification
 import android.service.notification.StatusBarNotification
@@ -14,7 +14,7 @@ import java.util.*
 /**
  * Created by Stefan on 04.01.2018.
  */
-class DebugPost : PluginInterface {
+class DebugPost : ProcessorInterface {
 
     private val POST_URL = "https://www.stefangruber.net/snoty-debug.php"
     private val TAG = "DebugPost"

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:title="Notification Filtering">
+
+        <CheckBoxPreference
+            android:defaultValue="True"
+            android:inputType=""
+            android:key="@string/preference_noclear_key"
+            android:summary="@string/preference_noclear_summary"
+            android:title="@string/preference_noclear_title" />
+        <EditTextPreference
+            android:defaultValue="android"
+            android:key="@string/preference_ignored_packages_key"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:summary="@string/preference_ignored_packages_summary"
+            android:title="@string/preference_ignored_packages_title" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

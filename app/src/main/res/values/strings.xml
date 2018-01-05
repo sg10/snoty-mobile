@@ -1,4 +1,16 @@
 <resources>
     <string name="app_name">Snoty</string>
     <string name="listener_service_name">Snoty Notification Listener</string>
+
+    <string name="PREF_PACKAGES">IGNORED_PACKAGES</string>
+
+    <string name="preference_noclear_title">Ignore Non-Removable</string>
+    <string name="preference_noclear_summary">Ignore Notifications with NO_CLEAR flag set</string>
+    <string name="preference_noclear_key">IGNORE_NO_CLEAR</string>
+
+    <string name="preference_ignored_packages_title">Ignored Packages</string>
+    <string name="preference_ignored_packages_summary">Ignored Applications (Packages)</string>
+    <string name="preference_ignored_packages_key">IGNORED_PACKAGES</string>
+
+
 </resources>
