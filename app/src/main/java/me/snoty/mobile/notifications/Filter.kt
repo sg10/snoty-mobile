@@ -53,9 +53,10 @@ class Filter(private val context : Context) {
     }
 
     fun shouldIgnore(sbn : StatusBarNotification?) : Boolean {
-
-        if(sbn?.packageName == context.packageName &&
-                sbn?.notification?.extras?.getInt(Notification.EXTRA_NOTIFICATION_ID) == Listener.SERVICE_NOTIFICATION_ID) {
+        if(sbn == null) {
+            return true
+        }
+        if(sbn.packageName == context.packageName && !sbn.isClearable) {
             return true
         }
         if(sbn == null || ignoredPackages.contains(sbn?.packageName)) {

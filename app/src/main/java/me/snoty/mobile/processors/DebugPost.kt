@@ -56,7 +56,7 @@ class DebugPost : ProcessorInterface {
                 val jsonParam = JSONObject()
                 jsonParam.put("id", id)
                 jsonParam.put("timestamp", dateFormat.format(Date()))
-                jsonParam.put("action", action)
+                jsonParam.put("operation", action)
                 jsonParam.put("title", n.notification.extras[Notification.EXTRA_TITLE])
                 jsonParam.put("text", n.notification.extras[Notification.EXTRA_TEXT])
                 jsonParam.put("package", n.packageName)

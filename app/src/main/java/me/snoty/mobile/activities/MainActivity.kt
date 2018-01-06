@@ -23,7 +23,6 @@ import android.view.MenuItem
 import android.app.NotificationManager
 import android.content.Context
 import android.app.NotificationChannel
-import me.snoty.mobile.server.protocol.NotificationPacketOutgoing
 
 
 class MainActivity : AppCompatActivity(), ProcessorInterface {
@@ -53,7 +52,7 @@ class MainActivity : AppCompatActivity(), ProcessorInterface {
         }
     }
 
-    private val DEMO_CHANNEL_ID: String = "Demo Notification"
+    private val DEMO_CHANNEL_ID: String = "Demo NotificationPostedPacket"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -89,32 +88,30 @@ class MainActivity : AppCompatActivity(), ProcessorInterface {
         testNotificationButton.setOnClickListener {
             val mNotifyBuilder = NotificationCompat.Builder(this@MainActivity, DEMO_CHANNEL_ID)
             mNotifyBuilder.mContentTitle = "Demo Notification"
-            mNotifyBuilder.mContentText = "Notification Number $demoNotificationCounter"
+            mNotifyBuilder.mContentText = "Notification #$demoNotificationCounter"
+            mNotifyBuilder.setChannelId(DEMO_CHANNEL_ID)
             mNotifyBuilder.setSmallIcon(R.drawable.notification_icon_background)
 
             val mNotifyMgr = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             mNotifyMgr.notify(demoNotificationCounter++, mNotifyBuilder.build())
         }
 
-        addDefaultPlugins()
-
-        val networkPacket = NotificationPacketOutgoing()
-        Log.d(TAG, networkPacket.toJSON())
+        addDefaultProcessors()
     }
 
     override fun onDestroy() {
-        removeDefaultPlugins()
+        removeDefaultProcessors()
         super.onDestroy()
     }
 
-    private fun addDefaultPlugins() {
+    private fun addDefaultProcessors() {
         Repository.addProcessor(this)
         Repository.addProcessor(debugNotification)
     }
 
-    private fun removeDefaultPlugins() {
-        Repository.removeProcessor(this)
-        Repository.removeProcessor(debugNotification)
+    private fun removeDefaultProcessors() {
+        //Repository.removeProcessor(this)
+        //Repository.removeProcessor(debugNotification)
     }
 
     private fun startListener() {

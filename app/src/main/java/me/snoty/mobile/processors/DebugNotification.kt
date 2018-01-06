@@ -46,7 +46,7 @@ class DebugNotification(context : Context) : ProcessorInterface {
             val notificationText = "Posted: $countPosted, Updated: $countUpdated, Removed: $countRemoved"
             val mNotifyBuilder = NotificationCompat.Builder(context, Listener.SERVICE_CHANNEL_ID)
             mNotifyBuilder.setOngoing(true)
-            mNotifyBuilder.mContentTitle = "Snoty Notification Listener"
+            mNotifyBuilder.mContentTitle = "Snoty NotificationPostedPacket Listener"
             mNotifyBuilder.mContentText = notificationText
             mNotifyBuilder.setSmallIcon(R.drawable.notification_icon_background)
 

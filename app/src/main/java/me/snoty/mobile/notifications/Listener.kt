@@ -27,7 +27,7 @@ class Listener : NotificationListenerService() {
     companion object {
 
         val SERVICE_NOTIFICATION_ID: Int = 98742
-        val SERVICE_CHANNEL_ID: String = "Notification Listener Service"
+        val SERVICE_CHANNEL_ID: String = "NotificationPostedPacket Listener Service"
 
         private var instance: Listener? = null
 
@@ -71,7 +71,7 @@ class Listener : NotificationListenerService() {
             val channel = NotificationChannel(
                     SERVICE_CHANNEL_ID,
                     SERVICE_CHANNEL_ID,
-                    NotificationManager.IMPORTANCE_HIGH)
+                    NotificationManager.IMPORTANCE_LOW)
             // Configure the notification channel.
             channel.description = SERVICE_CHANNEL_ID
             channel.enableLights(false)
@@ -87,8 +87,9 @@ class Listener : NotificationListenerService() {
 
         val mNotifyBuilder = NotificationCompat.Builder(this, SERVICE_CHANNEL_ID)
         mNotifyBuilder.setOngoing(true)
-        mNotifyBuilder.mContentTitle = "Snoty Notification Listener"
+        mNotifyBuilder.mContentTitle = "Snoty NotificationPostedPacket Listener"
         mNotifyBuilder.mContentText = "Service up and running ..."
+        mNotifyBuilder.setChannelId(SERVICE_CHANNEL_ID)
         mNotifyBuilder.setSmallIcon(R.drawable.notification_icon_background)
 
         this.startForeground(SERVICE_NOTIFICATION_ID, mNotifyBuilder.build())

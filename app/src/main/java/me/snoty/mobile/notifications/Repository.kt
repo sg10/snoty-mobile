@@ -5,6 +5,7 @@ import android.service.notification.StatusBarNotification
 import android.util.Log
 import me.snoty.mobile.processors.DebugPost
 import me.snoty.mobile.processors.ProcessorInterface
+import me.snoty.mobile.processors.ServerConnection
 
 /**
  * Created by Stefan on 27.12.2017.
@@ -13,7 +14,8 @@ class Repository private constructor(){
 
     init {
         Log.d(TAG, "initializing repository")
-        addProcessor(DebugPost())
+        //addProcessor(DebugPost())
+        addProcessor(ServerConnection())
     }
 
     private object Holder { val INSTANCE = Repository() }
