@@ -2,6 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
+        android:id="@+id/scanCertificateItem"
+        android:title="Scan Certificate" />
+    <item
         android:id="@+id/openSettingsItem"
         android:title="Settings" />
 </menu>

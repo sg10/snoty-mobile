@@ -6,6 +6,7 @@ import android.util.Log
 import me.snoty.mobile.processors.DebugPost
 import me.snoty.mobile.processors.ProcessorInterface
 import me.snoty.mobile.processors.ServerConnection
+import java.util.*
 
 /**
  * Created by Stefan on 27.12.2017.
@@ -30,9 +31,13 @@ class Repository private constructor(){
         private val processorsList: ArrayList<ProcessorInterface> = ArrayList()
 
         fun addProcessor(processor: ProcessorInterface) {
-            removeProcessor(processor)
-            processorsList.add(processor)
-            Log.d(TAG, "Plugin loaded: " + processor::class.java.simpleName)
+            try {
+                removeProcessor(processor)
+                processorsList.add(processor)
+                Log.d(TAG, "Plugin loaded: " + processor::class.java.simpleName)
+            } catch(cex : ConcurrentModificationException) {
+                cex.printStackTrace()
+            }
         }
 
         fun removeProcessor(processor: ProcessorInterface) {

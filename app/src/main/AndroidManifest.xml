@@ -24,6 +24,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="me.snoty.mobile.activities.MainActivity" />
         </activity>
+        <activity
+            android:name=".activities.CertificateScannerActivity"
+            android:label="Certificate Scanner"
+            android:parentActivityName="me.snoty.mobile.activities.CertificateScannerActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="me.snoty.mobile.activities.MainActivity" />
+        </activity>
         <service android:name="me.snoty.mobile.notifications.Listener"
             android:label="@string/listener_service_name"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
@@ -34,5 +42,6 @@
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
 </manifest>

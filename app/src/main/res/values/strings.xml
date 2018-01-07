@@ -12,5 +12,11 @@
     <string name="preference_ignored_packages_summary">Ignored Applications (Packages)</string>
     <string name="preference_ignored_packages_key">IGNORED_PACKAGES</string>
 
+    <string name="preference_server_ip_title">Server IP</string>
+    <string name="preference_server_ip_summary">Computer IP Address</string>
+    <string name="preference_server_ip_key">SERVER_IP</string>
 
+    <string name="preference_server_fingerprint_title">Server Fingerprint</string>
+    <string name="preference_server_fingerprint_summary">Computer SSL Certificate Fingerprint</string>
+    <string name="preference_server_fingerprint_key">SERVER_FINGERPRINT</string>
 </resources>

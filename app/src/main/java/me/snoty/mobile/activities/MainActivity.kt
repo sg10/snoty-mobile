@@ -36,7 +36,6 @@ class MainActivity : AppCompatActivity(), ProcessorInterface {
     private var demoNotificationCounter = 0
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-
         val inflater = menuInflater
         inflater.inflate(R.menu.main_menu, menu)
         return true
@@ -46,6 +45,10 @@ class MainActivity : AppCompatActivity(), ProcessorInterface {
         when(item?.itemId) {
             R.id.openSettingsItem -> {
                 startActivity(Intent(this, SettingsActivity::class.java))
+                return true
+            }
+            R.id.scanCertificateItem -> {
+                scanCertificate()
                 return true
             }
             else -> return super.onOptionsItemSelected(item)
@@ -160,6 +163,11 @@ class MainActivity : AppCompatActivity(), ProcessorInterface {
             channel.enableVibration(false)
             mngr.createNotificationChannel(channel)
         }
+    }
+
+    private fun scanCertificate() {
+        val intent = Intent(this, CertificateScannerActivity::class.java)
+        startActivity(intent)
     }
 
 }

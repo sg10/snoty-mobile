@@ -7,12 +7,14 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
+import android.preference.PreferenceManager
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.support.v4.app.NotificationCompat
 import android.support.v4.app.NotificationManagerCompat
 import android.util.Log
 import me.snoty.mobile.R
+import me.snoty.mobile.server.ConnectionHandler
 
 
 /**
@@ -43,6 +45,7 @@ class Listener : NotificationListenerService() {
 
     override fun onBind(intent: Intent?): IBinder {
         Log.d(TAG, "listener bind")
+        ConnectionHandler.updateServerPreferences(PreferenceManager.getDefaultSharedPreferences(this))
         return super.onBind(intent)
     }
 
