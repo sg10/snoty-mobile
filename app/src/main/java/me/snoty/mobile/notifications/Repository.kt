@@ -3,7 +3,7 @@ package me.snoty.mobile.notifications
 import android.app.Notification
 import android.service.notification.StatusBarNotification
 import android.util.Log
-import me.snoty.mobile.processors.DebugPost
+import me.snoty.mobile.processors.HistoryList
 import me.snoty.mobile.processors.ProcessorInterface
 import me.snoty.mobile.processors.ServerConnection
 import java.util.*
@@ -17,6 +17,7 @@ class Repository private constructor(){
         Log.d(TAG, "initializing repository")
         //addProcessor(DebugPost())
         addProcessor(ServerConnection())
+        addProcessor(HistoryList())
     }
 
     private object Holder { val INSTANCE = Repository() }
@@ -29,6 +30,8 @@ class Repository private constructor(){
         val instance: Repository by lazy { Holder.INSTANCE }
 
         private val processorsList: ArrayList<ProcessorInterface> = ArrayList()
+
+        enum class Action { CREATED, UPDATED, REMOVED }
 
         fun addProcessor(processor: ProcessorInterface) {
             try {

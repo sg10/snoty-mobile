@@ -1,37 +1,33 @@
 package me.snoty.mobile.activities
 
 import android.annotation.SuppressLint
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.service.notification.StatusBarNotification
 import android.support.v4.app.NotificationCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
+import android.view.MenuItem
 import android.widget.Button
 import android.widget.ListView
 import android.widget.Toast
 import me.snoty.mobile.R
-import me.snoty.mobile.notifications.Listener
-import me.snoty.mobile.notifications.Repository
-import me.snoty.mobile.processors.DebugNotification
-import me.snoty.mobile.processors.ProcessorInterface
-import android.view.MenuItem
-import android.app.NotificationManager
-import android.content.Context
-import android.app.NotificationChannel
+import me.snoty.mobile.notifications.ListenerHandler
+import me.snoty.mobile.notifications.ListenerService
+import me.snoty.mobile.processors.HistoryList
+import me.snoty.mobile.processors.history.NotificationHistoryItem
 
 
-class MainActivity : AppCompatActivity(), ProcessorInterface {
+class MainActivity : AppCompatActivity() {
 
     private val TAG = "MainActivity"
 
     private var listAdapter : NotificationsListAdapter? = null
-
-    private val debugNotification = DebugNotification(this)
 
     private var demoNotificationCounter = 0
 
@@ -63,31 +59,52 @@ class MainActivity : AppCompatActivity(), ProcessorInterface {
 
         registerNotificationChannel()
 
-        val listView : ListView = findViewById(R.id.notificationsHistoryList)
-        listAdapter = NotificationsListAdapter(this)
-        listView.adapter = listAdapter
+        setButtonClickHandlers()
+        initNotificationsHistoryList()
+        updateNotificationsHistoryList()
+    }
 
-        val startServiceButton : Button = findViewById(R.id.startServiceButton)
+    override fun onResume() {
+        updateNotificationsHistoryList()
+        super.onResume()
+    }
+
+    private fun updateNotificationsHistoryList() {
+        if (HistoryList.instance != null) {
+            listAdapter?.clear()
+            listAdapter?.addAll(HistoryList.instance?.historyList)
+            HistoryList.instance?.setMainActivity(this@MainActivity)
+        }
+    }
+
+    private fun initNotificationsHistoryList() {
+        val listView: ListView = findViewById(R.id.notificationsHistoryList)
+        this.listAdapter = NotificationsListAdapter(this)
+        listView.adapter = listAdapter
+    }
+
+    private fun setButtonClickHandlers() {
+        val startServiceButton: Button = findViewById(R.id.startServiceButton)
         startServiceButton.setOnClickListener {
             if (!isPermissionGranted()) {
                 val toast = Toast.makeText(this, "Listener Permission NOT granted", Toast.LENGTH_LONG)
-                startActivity( Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+                startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
                 toast.show()
-            }
-            else {
-                startListener()
+            } else {
+                ListenerHandler.start(this)
+                updateNotificationsHistoryList()
             }
         }
 
-        val stopServiceButton : Button = findViewById(R.id.stopServiceButton)
+        val stopServiceButton: Button = findViewById(R.id.stopServiceButton)
         stopServiceButton.setOnClickListener {
             Log.d(TAG, "clicked stopping service ...")
-            val serviceIntent = Intent(this@MainActivity, Listener::class.java)
+            val serviceIntent = Intent(this@MainActivity, ListenerHandler::class.java)
             stopService(serviceIntent)
-            Listener.stop()
+            ListenerHandler.stop()
         }
 
-        val testNotificationButton : Button = findViewById(R.id.testNotificationButton)
+        val testNotificationButton: Button = findViewById(R.id.testNotificationButton)
         testNotificationButton.setOnClickListener {
             val mNotifyBuilder = NotificationCompat.Builder(this@MainActivity, DEMO_CHANNEL_ID)
             mNotifyBuilder.mContentTitle = "Demo Notification"
@@ -98,48 +115,10 @@ class MainActivity : AppCompatActivity(), ProcessorInterface {
             val mNotifyMgr = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             mNotifyMgr.notify(demoNotificationCounter++, mNotifyBuilder.build())
         }
-
-        addDefaultProcessors()
     }
-
-    override fun onDestroy() {
-        removeDefaultProcessors()
-        super.onDestroy()
-    }
-
-    private fun addDefaultProcessors() {
-        Repository.addProcessor(this)
-        Repository.addProcessor(debugNotification)
-    }
-
-    private fun removeDefaultProcessors() {
-        //Repository.removeProcessor(this)
-        //Repository.removeProcessor(debugNotification)
-    }
-
-    private fun startListener() {
-        val serviceIntent = Intent(this@MainActivity, Listener::class.java)
-        if (Build.VERSION.SDK_INT >= 26) {
-            startForegroundService(serviceIntent)
-        } else {
-            startService(serviceIntent)
-        }
-    }
-
-    override fun updated(id : String, sbn : StatusBarNotification) {
-    }
-
-    override fun removed(id : String, sbn : StatusBarNotification) {
-
-    }
-
-    override fun created(id: String, sbn: StatusBarNotification) {
-        listAdapter?.add(sbn.notification)
-    }
-
 
     private fun isPermissionGranted() : Boolean {
-        val cn = ComponentName(this, Listener::class.java)
+        val cn = ComponentName(this, ListenerService::class.java)
         val flat = Settings.Secure.getString(this.contentResolver, "enabled_notification_listeners")
         return flat != null && flat!!.contains(cn.flattenToString())
     }
@@ -168,6 +147,11 @@ class MainActivity : AppCompatActivity(), ProcessorInterface {
     private fun scanCertificate() {
         val intent = Intent(this, CertificateScannerActivity::class.java)
         startActivity(intent)
+    }
+
+    fun addToNotificationList(n : NotificationHistoryItem) {
+        Log.d(TAG, "adding history item to view")
+        listAdapter?.insert(n, 0)
     }
 
 }

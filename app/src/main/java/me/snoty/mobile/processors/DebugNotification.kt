@@ -10,7 +10,8 @@ import android.service.notification.StatusBarNotification
 import android.support.v4.app.NotificationCompat
 import me.snoty.mobile.R
 import me.snoty.mobile.activities.MainActivity
-import me.snoty.mobile.notifications.Listener
+import me.snoty.mobile.notifications.ListenerHandler
+import me.snoty.mobile.notifications.ListenerService
 
 
 /**
@@ -44,7 +45,7 @@ class DebugNotification(context : Context) : ProcessorInterface {
             val mNotificationManager = this.context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
             val notificationText = "Posted: $countPosted, Updated: $countUpdated, Removed: $countRemoved"
-            val mNotifyBuilder = NotificationCompat.Builder(context, Listener.SERVICE_CHANNEL_ID)
+            val mNotifyBuilder = NotificationCompat.Builder(context, ListenerService.SERVICE_CHANNEL_ID)
             mNotifyBuilder.setOngoing(true)
             mNotifyBuilder.mContentTitle = "Snoty NotificationPostedPacket Listener"
             mNotifyBuilder.mContentText = notificationText
@@ -53,9 +54,9 @@ class DebugNotification(context : Context) : ProcessorInterface {
             val notificationIntent = Intent(context, MainActivity::class.java)
             notificationIntent.addCategory(Intent.CATEGORY_LAUNCHER)
             notificationIntent.action = Intent.ACTION_MAIN
-
             mNotifyBuilder.setContentIntent(PendingIntent.getActivity(context, 0, notificationIntent, 0))
-            mNotificationManager.notify(Listener.SERVICE_NOTIFICATION_ID, mNotifyBuilder.build())
+
+            mNotificationManager.notify(ListenerService.SERVICE_NOTIFICATION_ID, mNotifyBuilder.build())
         }
     }
 

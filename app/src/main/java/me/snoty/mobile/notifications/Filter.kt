@@ -66,6 +66,12 @@ class Filter(private val context : Context) {
             return true
         }
 
+        var title = sbn.notification.extras?.get(Notification.EXTRA_TITLE)?.toString() ?: ""
+        var text = sbn.notification.extras?.get(Notification.EXTRA_TEXT)?.toString() ?: ""
+        if(title == "" && text == "") {
+            return true
+        }
+
         return false
     }
 

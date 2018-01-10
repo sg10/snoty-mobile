@@ -60,9 +60,11 @@ class CertificateScannerActivity : AppCompatActivity(), ZXingScannerView.ResultH
         }
 
         val parts = resultText.split(RESULT_DELIMITER)
-        val ip = parts[0]
+        var ip = parts[0]
         val fingerprint = parts[1]
         val fingerprint_hexonly = fingerprint.replace(":", "").toLowerCase()
+
+        ip = "192.168.0.192"
 
         // todo: encrypt
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)

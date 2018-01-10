@@ -26,22 +26,14 @@ class ServerConnection : ProcessorInterface {
 
     private var TAG = "ServerConn"
 
-    override fun created(id: String, n: StatusBarNotification) {
-        /*
-        val packet = handler.create(NotificationPostedPacket(id, n))
-        Log.d(TAG, handler.toJSON(packet))
+    constructor() {
+        ConnectionHandler.initServerConnectionListener(this)
+    }
 
-        val pBody = NotificationOperationPacket()
-        pBody.id = id
-        pBody.actionId = 0
-        pBody.inputValue = null
-        pBody.operation = NotificationOperationPacket.NotificationOperation.action
-        val packet2 = handler.create(pBody)
-        Log.d(TAG, handler.toJSON(packet2))
-        */
-        // send command
+    override fun created(id: String, n: StatusBarNotification) {
         Log.d(TAG, "sending data to server")
-        ConnectionHandler("{test:'data'}").execute()
+        val packet = handler.create(NotificationPostedPacket(id, n))
+        ConnectionHandler.send(handler.toJSON(packet))
     }
 
     override fun removed(id: String, n: StatusBarNotification) {
@@ -52,10 +44,7 @@ class ServerConnection : ProcessorInterface {
         // send command
     }
 
-    private fun waitForCommand() {
-
-        // read
-        // - remove
-        // - call intent
+    fun receivedCommand(command : String) {
+        Log.d(TAG, "received command\n$command")
     }
 }
