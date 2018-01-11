@@ -2,26 +2,25 @@ package me.snoty.mobile.server
 
 import android.util.Log
 import me.snoty.mobile.Utils
+import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
 import javax.net.ssl.X509TrustManager
 
 /**
  * Created by Stefan on 08.01.2018.
  */
-class CustomTrustManager : X509TrustManager {
+class ServerFingerprintTrustManager : X509TrustManager {
     private val TAG = "TrustMgr"
 
+    private var storedFingerprint : String? = null
+
+    fun setStoredFingerprint(fingerprint : String) {
+        storedFingerprint = fingerprint
+    }
+
+
     override fun checkClientTrusted(certs: Array<out X509Certificate>?, s: String?) {
-        certs?.forEach { cert ->
-            if(cert is X509Certificate) {
-                val x509cert : X509Certificate = cert
-                val fingerprint = Utils.getCertificateFingerprint(x509cert)
-                Log.d(TAG, "fingerprint is $fingerprint")
-            }
-            else {
-                Log.e(TAG, "unexpected certificate format!")
-            }
-        }
+        throw Exception("trust store is not supposed to handle clients")
     }
 
     override fun checkServerTrusted(certs: Array<out X509Certificate>?, p1: String?) {
@@ -29,7 +28,10 @@ class CustomTrustManager : X509TrustManager {
             if(cert is X509Certificate) {
                 val x509cert : X509Certificate = cert
                 val fingerprint = Utils.getCertificateFingerprint(x509cert)
-                Log.d(TAG, "fingerprint is $fingerprint")
+                if(fingerprint != storedFingerprint) {
+                    Log.e(TAG, "server's fingerprint is $fingerprint")
+                    throw CertificateException("stored fingerprint does not match server")
+                }
             }
             else {
                 Log.e(TAG, "unexpected certificate format!")
@@ -38,7 +40,6 @@ class CustomTrustManager : X509TrustManager {
     }
 
     override fun getAcceptedIssuers(): Array<X509Certificate> {
-        Log.d(TAG, "getAcceptedIssuers")
-        return arrayOf()
+        throw Exception("trust store does not validate issuers")
     }
 }

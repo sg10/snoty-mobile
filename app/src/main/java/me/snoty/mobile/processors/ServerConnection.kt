@@ -13,6 +13,7 @@ import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
+import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
 import java.util.*
 
@@ -33,7 +34,11 @@ class ServerConnection : ProcessorInterface {
     override fun created(id: String, n: StatusBarNotification) {
         Log.d(TAG, "sending data to server")
         val packet = handler.create(NotificationPostedPacket(id, n))
-        ConnectionHandler.send(handler.toJSON(packet))
+        try {
+            ConnectionHandler.send(handler.toJSON(packet))
+        } catch(cex : CertificateException) {
+            Log.e(TAG, cex.message)
+        }
     }
 
     override fun removed(id: String, n: StatusBarNotification) {

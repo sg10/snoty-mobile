@@ -14,6 +14,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.ListView
 import android.widget.Toast
 import me.snoty.mobile.R
@@ -21,6 +22,7 @@ import me.snoty.mobile.notifications.ListenerHandler
 import me.snoty.mobile.notifications.ListenerService
 import me.snoty.mobile.processors.HistoryList
 import me.snoty.mobile.processors.history.NotificationHistoryItem
+import me.snoty.mobile.server.ConnectionHandler
 
 
 class MainActivity : AppCompatActivity() {
@@ -66,6 +68,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         updateNotificationsHistoryList()
+        val checkBox = findViewById<CheckBox>(R.id.serverConnectionValidCheckBox)
+        checkBox.isChecked = ConnectionHandler.isServerConnectionPossible()
         super.onResume()
     }
 

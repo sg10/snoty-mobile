@@ -62,18 +62,16 @@ class CertificateScannerActivity : AppCompatActivity(), ZXingScannerView.ResultH
         val parts = resultText.split(RESULT_DELIMITER)
         var ip = parts[0]
         val fingerprint = parts[1]
-        val fingerprint_hexonly = fingerprint.replace(":", "").toLowerCase()
-
-        ip = "192.168.0.192"
+        val fingerprintCleared = fingerprint.replace(":", "").toLowerCase()
 
         // todo: encrypt
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         val editor = prefs.edit()
-        editor.putString(PreferenceConstants.SERVER_FINGERPRINT, fingerprint_hexonly)
+        editor.putString(PreferenceConstants.SERVER_FINGERPRINT, fingerprintCleared)
         editor.putString(PreferenceConstants.SERVER_IP, ip)
         if(editor.commit()) {
             Log.d(TAG, "Saved Server Connection Details")
-            ConnectionHandler.updateServerPreferences(prefs)
+            ConnectionHandler.updateServerPreferences(PreferenceManager.getDefaultSharedPreferences(this))
             return true
         }
         else {

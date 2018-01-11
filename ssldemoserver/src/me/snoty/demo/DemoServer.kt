@@ -5,6 +5,9 @@ import java.security.KeyStore
 import java.util.*
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLServerSocketFactory
+import jdk.nashorn.internal.runtime.ScriptingFunctions.readLine
+
+
 
 
 fun main(args: Array<String>) {
@@ -15,10 +18,10 @@ fun main(args: Array<String>) {
     println("Server address is "+ss.localSocketAddress)
 
     while (true) {
-        println("Waiting for client to connect ...")
         val sock = ss.accept()
         DemoServer(sock, true).start()
         //DemoServer(sock, false).start()
+        Thread.sleep(500)
     }
 }
 
@@ -39,14 +42,17 @@ class DemoServer : Thread {
 
         try {
             if(isReader) {
-                val br = BufferedReader(InputStreamReader(sock?.getInputStream()))
+                val inputStream = sock?.getInputStream()
+                val br = BufferedReader(InputStreamReader(inputStream))
+                println("READER [br=$br], [sock=$sock]")
                 while(true) {
-                    val data = br.read()
-                    if(data != null) {
-                        println("\n- Receiving data from [" + sock?.remoteSocketAddress + "] -")
-                        println(data)
-                    }
-                    Thread.sleep(100)
+                    if(sock == null) break
+                    if(sock?.isConnected != true) break
+                    if(sock?.isClosed == true) break
+
+                    println("\n- Receiving data from [" + sock?.remoteSocketAddress + "] -")
+                    var string = br.readLine()
+                    println(string)
                 }
             }
             else {
@@ -57,8 +63,10 @@ class DemoServer : Thread {
                     pw.close()
                 }
             }
+            println("closing socket")
             sock?.close()
         } catch (ioe: IOException) {
+            ioe.printStackTrace()
         }
 
         println("Connection closed.\n")

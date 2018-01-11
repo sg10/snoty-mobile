@@ -14,10 +14,7 @@ import java.util.*
 class Repository private constructor(){
 
     init {
-        Log.d(TAG, "initializing repository")
-        //addProcessor(DebugPost())
-        addProcessor(ServerConnection())
-        addProcessor(HistoryList())
+        reset()
     }
 
     private object Holder { val INSTANCE = Repository() }
@@ -51,6 +48,14 @@ class Repository private constructor(){
                     processorsList.remove(it)
                 }
             }
+        }
+
+        fun reset() {
+            Log.d(TAG, "resetting repository")
+            processorsList.clear()
+            //addProcessor(DebugPost())
+            addProcessor(ServerConnection())
+            addProcessor(HistoryList())
         }
     }
 

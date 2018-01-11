@@ -17,21 +17,39 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <Button
-            android:id="@+id/startServiceButton"
+        <CheckBox
+            android:id="@+id/serverConnectionValidCheckBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Start"
-            tools:layout_editor_absoluteX="8dp"
-            tools:layout_editor_absoluteY="165dp" />
+            android:layout_marginBottom="20sp"
+            android:text="Server Connection Valid"
+            android:textStyle="bold"
+            tools:clickable="false" />
 
-        <Button
-            android:id="@+id/stopServiceButton"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Stop"
-            tools:layout_editor_absoluteX="8dp"
-            tools:layout_editor_absoluteY="230dp" />
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/startServiceButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Start"
+                tools:layout_editor_absoluteX="8dp"
+                tools:layout_editor_absoluteY="165dp" />
+
+            <Button
+                android:id="@+id/stopServiceButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Stop"
+                tools:layout_editor_absoluteX="8dp"
+                tools:layout_editor_absoluteY="230dp" />
+
+        </LinearLayout>
 
         <Button
             android:id="@+id/testNotificationButton"
@@ -44,7 +62,10 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginBottom="40sp"
-            android:layout_marginTop="30sp" />
+            android:layout_marginTop="30sp" >
+
+
+        </ListView>
 
     </LinearLayout>
 
