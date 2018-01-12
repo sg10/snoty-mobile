@@ -14,7 +14,7 @@ import android.util.Log
 import android.widget.Toast
 import com.google.zxing.BarcodeFormat
 import me.snoty.mobile.PreferenceConstants
-import me.snoty.mobile.server.ConnectionHandler
+import me.snoty.mobile.server.connection.ConnectionHandler
 
 
 /**
@@ -71,7 +71,7 @@ class CertificateScannerActivity : AppCompatActivity(), ZXingScannerView.ResultH
         editor.putString(PreferenceConstants.SERVER_IP, ip)
         if(editor.commit()) {
             Log.d(TAG, "Saved Server Connection Details")
-            ConnectionHandler.updateServerPreferences(PreferenceManager.getDefaultSharedPreferences(this))
+            ConnectionHandler.instance.updateServerPreferences(this)
             return true
         }
         else {

@@ -17,7 +17,7 @@ import android.support.v4.app.NotificationManagerCompat
 import android.util.Log
 import me.snoty.mobile.R
 import me.snoty.mobile.activities.MainActivity
-import me.snoty.mobile.server.ConnectionHandler
+import me.snoty.mobile.server.connection.ConnectionHandler
 
 /**
  * Created by Stefan on 09.01.2018.
@@ -40,7 +40,7 @@ class ListenerService : NotificationListenerService() {
         Log.d(TAG, "listener bind")
         setStarted()
         instance = this
-        ConnectionHandler.updateServerPreferences(PreferenceManager.getDefaultSharedPreferences(this))
+        ConnectionHandler.instance.updateServerPreferences(this)
         return super.onBind(intent)
     }
 

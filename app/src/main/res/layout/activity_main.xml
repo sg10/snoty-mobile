@@ -11,20 +11,11 @@
         android:layout_height="match_parent"
         android:layout_marginEnd="32dp"
         android:layout_marginStart="32dp"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="30dp"
         android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
-
-        <CheckBox
-            android:id="@+id/serverConnectionValidCheckBox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="20sp"
-            android:text="Server Connection Valid"
-            android:textStyle="bold"
-            tools:clickable="false" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -51,6 +42,18 @@
 
         </LinearLayout>
 
+        <TextView
+            android:id="@+id/statusTextView"
+            android:layout_width="match_parent"
+            android:layout_height="20sp"
+            android:layout_marginBottom="5sp"
+            android:layout_marginTop="5sp"
+            android:layout_weight="0"
+            android:text="123"
+            android:textAlignment="center"
+            android:textColor="@android:color/holo_red_light"
+            android:textStyle="bold" />
+
         <Button
             android:id="@+id/testNotificationButton"
             android:layout_width="match_parent"
@@ -62,7 +65,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginBottom="40sp"
-            android:layout_marginTop="30sp" >
+            android:layout_marginTop="30sp">
 
 
         </ListView>

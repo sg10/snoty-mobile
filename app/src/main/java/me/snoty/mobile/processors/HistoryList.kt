@@ -13,8 +13,6 @@ class HistoryList : ProcessorInterface {
 
     private object Holder { val INSTANCE = HistoryList() }
 
-    private var mainActivity : MainActivity? = null
-
     companion object {
         var instance: HistoryList? = null
     }
@@ -27,7 +25,8 @@ class HistoryList : ProcessorInterface {
 
     private fun createHistoryItem(n: NotificationHistoryItem) {
         historyList.add(0, n)
-        this.mainActivity?.addToNotificationList(n)
+        MainActivity.instance?.addToNotificationList(n)
+        MainActivity.instance?.updateViews()
     }
 
     override fun created(id: String, n: StatusBarNotification) {
@@ -43,9 +42,5 @@ class HistoryList : ProcessorInterface {
     override fun updated(id: String, n: StatusBarNotification) {
         val n = NotificationHistoryItem(n, Repository.Companion.Action.UPDATED)
         createHistoryItem(n)
-    }
-
-    fun setMainActivity(mainActivity: MainActivity) {
-        this.mainActivity = mainActivity
     }
 }

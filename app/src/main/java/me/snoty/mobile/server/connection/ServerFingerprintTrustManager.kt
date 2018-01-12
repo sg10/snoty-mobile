@@ -1,4 +1,4 @@
-package me.snoty.mobile.server
+package me.snoty.mobile.server.connection
 
 import android.util.Log
 import me.snoty.mobile.Utils

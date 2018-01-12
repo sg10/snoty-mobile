@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.provider.Settings
 import android.support.v4.app.NotificationCompat
@@ -13,25 +14,28 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Button
-import android.widget.CheckBox
-import android.widget.ListView
-import android.widget.Toast
+import android.widget.*
 import me.snoty.mobile.R
 import me.snoty.mobile.notifications.ListenerHandler
 import me.snoty.mobile.notifications.ListenerService
 import me.snoty.mobile.processors.HistoryList
 import me.snoty.mobile.processors.history.NotificationHistoryItem
-import me.snoty.mobile.server.ConnectionHandler
+import me.snoty.mobile.server.connection.ConnectionHandler
 
 
 class MainActivity : AppCompatActivity() {
 
     private val TAG = "MainActivity"
 
+    companion object {
+        var instance : MainActivity? = null
+    }
+
     private var listAdapter : NotificationsListAdapter? = null
 
     private var demoNotificationCounter = 0
+
+    private val DEMO_CHANNEL_ID: String = "Demo NotificationPostedPacket"
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val inflater = menuInflater
@@ -46,16 +50,18 @@ class MainActivity : AppCompatActivity() {
                 return true
             }
             R.id.scanCertificateItem -> {
-                scanCertificate()
+                val intent = Intent(this, CertificateScannerActivity::class.java)
+                startActivity(intent)
                 return true
             }
-            else -> return super.onOptionsItemSelected(item)
         }
+
+        return super.onOptionsItemSelected(item)
     }
 
-    private val DEMO_CHANNEL_ID: String = "Demo NotificationPostedPacket"
-
     override fun onCreate(savedInstanceState: Bundle?) {
+        instance = this
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
@@ -63,22 +69,13 @@ class MainActivity : AppCompatActivity() {
 
         setButtonClickHandlers()
         initNotificationsHistoryList()
-        updateNotificationsHistoryList()
+
+        updateViews()
     }
 
     override fun onResume() {
-        updateNotificationsHistoryList()
-        val checkBox = findViewById<CheckBox>(R.id.serverConnectionValidCheckBox)
-        checkBox.isChecked = ConnectionHandler.isServerConnectionPossible()
+        updateViews()
         super.onResume()
-    }
-
-    private fun updateNotificationsHistoryList() {
-        if (HistoryList.instance != null) {
-            listAdapter?.clear()
-            listAdapter?.addAll(HistoryList.instance?.historyList)
-            HistoryList.instance?.setMainActivity(this@MainActivity)
-        }
     }
 
     private fun initNotificationsHistoryList() {
@@ -90,8 +87,8 @@ class MainActivity : AppCompatActivity() {
     private fun setButtonClickHandlers() {
         val startServiceButton: Button = findViewById(R.id.startServiceButton)
         startServiceButton.setOnClickListener {
-            if (!isPermissionGranted()) {
-                val toast = Toast.makeText(this, "Listener Permission NOT granted", Toast.LENGTH_LONG)
+            if (!checkListenerPermissionGranted()) {
+                val toast = Toast.makeText(this, "Listener Permission not granted", Toast.LENGTH_LONG)
                 startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
                 toast.show()
             } else {
@@ -121,7 +118,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun isPermissionGranted() : Boolean {
+    private fun updateNotificationsHistoryList() {
+        if (HistoryList.instance != null) {
+            listAdapter?.clear()
+            listAdapter?.addAll(HistoryList.instance?.historyList)
+        }
+    }
+
+    private fun checkListenerPermissionGranted() : Boolean {
         val cn = ComponentName(this, ListenerService::class.java)
         val flat = Settings.Secure.getString(this.contentResolver, "enabled_notification_listeners")
         return flat != null && flat!!.contains(cn.flattenToString())
@@ -148,14 +152,25 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun scanCertificate() {
-        val intent = Intent(this, CertificateScannerActivity::class.java)
-        startActivity(intent)
-    }
-
     fun addToNotificationList(n : NotificationHistoryItem) {
         Log.d(TAG, "adding history item to view")
         listAdapter?.insert(n, 0)
+    }
+
+    fun updateViews() {
+        this.runOnUiThread { // necessary to update views from other threads
+            updateNotificationsHistoryList()
+
+            val label = findViewById<TextView>(R.id.statusTextView)
+            if(ConnectionHandler.instance.connected) {
+                label.setTextColor(Color.BLACK)
+                label.text = "Connected"
+            }
+            else {
+                label.setTextColor(Color.RED)
+                label.text = ConnectionHandler.instance.lastConnectionError?.name ?: ""
+            }
+        }
     }
 
 }

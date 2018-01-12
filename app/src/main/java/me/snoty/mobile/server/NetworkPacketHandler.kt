@@ -20,10 +20,12 @@ class NetworkPacketHandler private constructor() {
     }
 
     private val objectMapper = ObjectMapper()
+    private val prettyObjectMapper = ObjectMapper()
 
     init {
         Log.d(TAG, "initializing network packet handler")
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT)
+        objectMapper.disable(SerializationFeature.INDENT_OUTPUT)
+        prettyObjectMapper.enable(SerializationFeature.INDENT_OUTPUT)
     }
 
     fun create(body : IPacketBody) : NetworkPacket {
@@ -32,5 +34,9 @@ class NetworkPacketHandler private constructor() {
 
     fun toJSON(packet : NetworkPacket) : String {
         return objectMapper.writeValueAsString(packet)
+    }
+
+    fun toPrettyJSON(packet : NetworkPacket) : String {
+        return prettyObjectMapper.writeValueAsString(packet)
     }
 }

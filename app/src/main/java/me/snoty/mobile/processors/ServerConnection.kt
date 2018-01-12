@@ -1,21 +1,12 @@
 package me.snoty.mobile.processors
 
-import android.os.AsyncTask
 import android.service.notification.StatusBarNotification
 import android.util.Log
-import me.snoty.mobile.server.ConnectionHandler
+import me.snoty.mobile.server.connection.ConnectionHandler
 import me.snoty.mobile.server.NetworkPacketHandler
-import me.snoty.mobile.server.protocol.NotificationOperationPacket
 import me.snoty.mobile.server.protocol.NotificationPostedPacket
-import javax.net.SocketFactory
-import javax.net.ssl.*
-import java.io.BufferedReader
-import java.io.BufferedWriter
-import java.io.InputStreamReader
-import java.io.OutputStreamWriter
+import me.snoty.mobile.server.protocol.NotificationRemovedPacket
 import java.security.cert.CertificateException
-import java.security.cert.X509Certificate
-import java.util.*
 
 
 /**
@@ -23,30 +14,27 @@ import java.util.*
  */
 class ServerConnection : ProcessorInterface {
 
-    private var handler : NetworkPacketHandler = NetworkPacketHandler.instance
+    private var packetHandler: NetworkPacketHandler = NetworkPacketHandler.instance
 
     private var TAG = "ServerConn"
 
     constructor() {
-        ConnectionHandler.initServerConnectionListener(this)
+        ConnectionHandler.instance.serverConnectionListener = this
     }
 
     override fun created(id: String, n: StatusBarNotification) {
-        Log.d(TAG, "sending data to server")
-        val packet = handler.create(NotificationPostedPacket(id, n))
-        try {
-            ConnectionHandler.send(handler.toJSON(packet))
-        } catch(cex : CertificateException) {
-            Log.e(TAG, cex.message)
-        }
+        val packet = packetHandler.create(NotificationPostedPacket(id, n, false))
+        ConnectionHandler.instance.addRequestToQueue(packet)
     }
 
     override fun removed(id: String, n: StatusBarNotification) {
-        // send command
+        val packet = packetHandler.create(NotificationRemovedPacket(id, n))
+        ConnectionHandler.instance.addRequestToQueue(packet)
     }
 
     override fun updated(id: String, n: StatusBarNotification) {
-        // send command
+        val packet = packetHandler.create(NotificationPostedPacket(id, n, true))
+        ConnectionHandler.instance.addRequestToQueue(packet)
     }
 
     fun receivedCommand(command : String) {

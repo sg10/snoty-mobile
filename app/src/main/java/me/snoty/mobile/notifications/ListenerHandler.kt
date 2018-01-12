@@ -1,31 +1,9 @@
 package me.snoty.mobile.notifications
 
-import android.annotation.SuppressLint
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.Service
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.os.AsyncTask
 import android.os.Build
-import android.os.IBinder
-import android.preference.PreferenceManager
-import android.service.notification.NotificationListenerService
-import android.service.notification.StatusBarNotification
-import android.support.v4.app.NotificationCompat
-import android.support.v4.app.NotificationManagerCompat
 import android.util.Log
-import me.snoty.mobile.R
-import me.snoty.mobile.server.ConnectionHandler
-import java.io.DataInputStream.readUTF
-import android.system.Os.accept
-import java.io.DataInputStream
-import java.io.IOException
-import java.io.PrintStream
-import javax.net.ssl.SSLServerSocket
-import javax.net.ssl.SSLServerSocketFactory
-import javax.net.ssl.SSLSocket
 
 
 /**

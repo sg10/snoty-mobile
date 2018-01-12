@@ -10,35 +10,38 @@ import com.fasterxml.jackson.annotation.JsonProperty
 class NotificationPostedPacket : IPacketBody {
 
     @JsonProperty("package")
-    private var aPackage : String? = null
+    private var aPackage: String? = null
 
-    var id : String? = null
+    var id: String? = null
 
-    var title : String? = null
-    var text : String? = null
+    var isUpdate: Boolean = false
 
-    var actions : ArrayList<NotificationAction> = arrayListOf()
+    var title: String? = null
+    var text: String? = null
 
-    var clearable : Boolean? = null
+    var actions: ArrayList<NotificationAction> = arrayListOf()
 
-    class NotificationAction(var id : Number,
-                             var label : String,
-                             var isInput : Boolean) {
+    var clearable: Boolean? = null
+
+    class NotificationAction(var id: Number,
+                             var label: String,
+                             var isInput: Boolean) {
     }
 
-    constructor(id : String, sbn : StatusBarNotification) {
-
+    constructor(id: String, sbn: StatusBarNotification, isUpdate: Boolean) {
         this.aPackage = sbn.packageName
         this.id = id
+
+        this.isUpdate = isUpdate
 
         var nExtras = sbn?.notification?.extras
         this.title = nExtras?.get(Notification.EXTRA_TITLE)?.toString()
         this.text = nExtras?.get(Notification.EXTRA_TEXT)?.toString()
 
-        if(sbn.notification.actions != null) {
+        if (sbn.notification.actions != null) {
             var idx = 0
             sbn.notification.actions.forEach {
-                var isInput : Boolean = it.remoteInputs != null && it.remoteInputs.isNotEmpty()
+                var isInput: Boolean = it.remoteInputs != null && it.remoteInputs.isNotEmpty()
                 actions.add(NotificationAction(idx, it.title.toString(), isInput))
                 idx += 1
             }

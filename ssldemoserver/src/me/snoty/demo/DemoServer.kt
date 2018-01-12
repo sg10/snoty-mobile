@@ -38,21 +38,20 @@ class DemoServer : Thread {
     }
 
     override fun run() {
-
-
         try {
             if(isReader) {
                 val inputStream = sock?.getInputStream()
                 val br = BufferedReader(InputStreamReader(inputStream))
-                println("READER [br=$br], [sock=$sock]")
                 while(true) {
                     if(sock == null) break
                     if(sock?.isConnected != true) break
                     if(sock?.isClosed == true) break
 
-                    println("\n- Receiving data from [" + sock?.remoteSocketAddress + "] -")
+                    println("\n- Waiting for data from [" + sock?.remoteSocketAddress + "] -")
                     var string = br.readLine()
                     println(string)
+
+                    if(string == null) break
                 }
             }
             else {
