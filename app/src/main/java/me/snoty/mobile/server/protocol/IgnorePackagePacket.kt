@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 /**
  * Created by Stefan on 06.01.2018.
  */
-class IgnorePackagePacket : IPacketBody {
+class IgnorePackagePacket : NetworkPacket {
 
     @JsonProperty("package")
     private var aPackage: String? = null
@@ -14,5 +14,7 @@ class IgnorePackagePacket : IPacketBody {
     fun getPackage() : String {
         return aPackage ?: ""
     }
+
+    constructor() {}
 
 }

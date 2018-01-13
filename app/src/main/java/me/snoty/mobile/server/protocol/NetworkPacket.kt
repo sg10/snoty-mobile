@@ -1,20 +1,22 @@
 package me.snoty.mobile.server.protocol
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect
-import com.fasterxml.jackson.annotation.JsonPropertyOrder
-import kotlin.properties.Delegates
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+import me.snoty.mobile.notifications.Repository
+
 
 /**
- * Created by Stefan on 05.01.2018.
+ * Created by Stefan on 06.01.2018.
  */
-@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.PUBLIC_ONLY )
-@JsonPropertyOrder("header")
-class NetworkPacket constructor(val body : IPacketBody) {
-
-    var header = PacketHeader()
-
-    init {
-        header.type = body::class.java.simpleName.replace("Packet", "")
-    }
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type")
+@JsonSubTypes(
+        JsonSubTypes.Type(value = IgnorePackagePacket::class, name = "IgnorePackage"),
+        JsonSubTypes.Type(value = NotificationOperationPacket::class, name = "NotificationOperation"),
+        JsonSubTypes.Type(value = NotificationPostedPacket::class, name = "NotificationPosted"),
+        JsonSubTypes.Type(value = NotificationRemovedPacket::class, name = "NotificationRemoved"))
+abstract class NetworkPacket {
 
 }

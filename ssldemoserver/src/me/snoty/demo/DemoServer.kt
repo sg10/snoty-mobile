@@ -20,7 +20,7 @@ fun main(args: Array<String>) {
     while (true) {
         val sock = ss.accept()
         DemoServer(sock, true).start()
-        //DemoServer(sock, false).start()
+        DemoServer(sock, false).start()
         Thread.sleep(500)
     }
 }
@@ -30,6 +30,8 @@ class DemoServer : Thread {
 
     private var sock: Socket? = null
     private var isReader: Boolean = false
+
+    private var scanner: Scanner? = null
 
     constructor(s: Socket, isReader: Boolean) {
         println("Client connected: " + s.remoteSocketAddress)
@@ -55,11 +57,16 @@ class DemoServer : Thread {
                 }
             }
             else {
+                scanner = Scanner(System.`in`)
+
                 val pw = PrintWriter(sock?.getOutputStream())
                 while(true) {
-                    pw.println(getDataToSend())
-                    println("- Sending data to [" + sock?.remoteSocketAddress + "] -")
-                    pw.close()
+                    val line = getDataToSend()
+                    if(line != null && line.length > 2) {
+                        pw.println(line)
+                        println("- Sending data to [" + sock?.remoteSocketAddress + "] -")
+                        pw.flush()
+                    }
                 }
             }
             println("closing socket")
@@ -68,18 +75,14 @@ class DemoServer : Thread {
             ioe.printStackTrace()
         }
 
+        scanner?.close()
+
         println("Connection closed.\n")
 
     }
 
     private fun getDataToSend(): String {
-        val scanner = Scanner(System.`in`)
-
-        print("Data to send (1 line): ")
-        val input = scanner.next()
-        scanner.close()
-
-        return input
+        return scanner?.nextLine() ?: ""
     }
 
 }

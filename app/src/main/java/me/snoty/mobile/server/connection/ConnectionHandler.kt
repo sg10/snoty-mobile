@@ -105,7 +105,7 @@ class ConnectionHandler {
     }
 
     fun processResponse(packet: NetworkPacket) {
-
+        serverConnectionListener?.receivedCommand(packet)
     }
 
     fun handleError(reason: ConnectionError) {

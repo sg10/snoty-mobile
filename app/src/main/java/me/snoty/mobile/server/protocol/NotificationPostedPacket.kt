@@ -1,13 +1,14 @@
 package me.snoty.mobile.server.protocol
 
 import android.app.Notification
+import android.net.Network
 import android.service.notification.StatusBarNotification
 import com.fasterxml.jackson.annotation.JsonProperty
 
 /**
  * Created by Stefan on 06.01.2018.
  */
-class NotificationPostedPacket : IPacketBody {
+class NotificationPostedPacket : NetworkPacket {
 
     @JsonProperty("package")
     private var aPackage: String? = null
@@ -27,6 +28,8 @@ class NotificationPostedPacket : IPacketBody {
                              var label: String,
                              var isInput: Boolean) {
     }
+
+    constructor() {}
 
     constructor(id: String, sbn: StatusBarNotification, isUpdate: Boolean) {
         this.aPackage = sbn.packageName

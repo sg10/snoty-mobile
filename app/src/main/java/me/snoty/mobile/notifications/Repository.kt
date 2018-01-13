@@ -82,6 +82,11 @@ class Repository private constructor(){
         }
     }
 
+    fun get(id : String?) : StatusBarNotification? {
+        if(id == null) return null
+        return map[id]
+    }
+
     private fun getNotificationId(sbn : StatusBarNotification) : String {
         return sbn.packageName+"#"+sbn.id
     }
