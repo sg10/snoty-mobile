@@ -1,10 +1,7 @@
 package me.snoty.mobile.notifications
 
 import android.annotation.SuppressLint
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.app.Service
+import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -39,19 +36,21 @@ class ListenerService : NotificationListenerService() {
     override fun onBind(intent: Intent?): IBinder {
         Log.d(TAG, "listener bind")
         setStarted()
-        instance = this
-        ConnectionHandler.instance.updateServerPreferences(this)
+        ConnectionHandler.instance.updateServerPreferences()
         return super.onBind(intent)
     }
 
     override fun onCreate() {
+        instance = this
         if (filter == null) {
             filter = Filter(this)
         }
+        Repository.reset()
         super.onCreate()
     }
 
     fun setStarted() {
+        ConnectionHandler.instance.updateServerPreferences()
         started = true
         Log.d(TAG, "ListenerService started (flag)")
         val mNotifyMgr = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -91,16 +90,21 @@ class ListenerService : NotificationListenerService() {
                 channel.description = SERVICE_CHANNEL_ID
                 channel.enableLights(false)
                 channel.enableVibration(false)
+                channel.importance = NotificationManager.IMPORTANCE_LOW
                 mngr.createNotificationChannel(channel)
             }
         }
 
+        val text = if(ConnectionHandler.instance.connected) "Connected" else "Disconnected"
+
         val mNotifyBuilder = NotificationCompat.Builder(this, SERVICE_CHANNEL_ID)
-        mNotifyBuilder.setOngoing(true)
-        mNotifyBuilder.mContentTitle = "Snoty NotificationPostedPacket Listener"
-        mNotifyBuilder.mContentText = "Service up and running ..."
-        mNotifyBuilder.setChannelId(SERVICE_CHANNEL_ID)
-        mNotifyBuilder.setSmallIcon(R.drawable.notification_icon_background)
+        mNotifyBuilder.mContentTitle = "Snoty Notification Listener"
+        mNotifyBuilder.mContentText = text
+        mNotifyBuilder.priority = NotificationManager.IMPORTANCE_LOW
+        mNotifyBuilder
+                .setOngoing(true)
+                .setChannelId(SERVICE_CHANNEL_ID)
+                .setSmallIcon(R.drawable.notification_icon_background)
 
         val notificationIntent = Intent(this, MainActivity::class.java)
         notificationIntent.addCategory(Intent.CATEGORY_LAUNCHER)
@@ -108,6 +112,13 @@ class ListenerService : NotificationListenerService() {
         mNotifyBuilder.setContentIntent(PendingIntent.getActivity(this, 0, notificationIntent, 0))
 
         return mNotifyBuilder
+    }
+
+    fun updateServerConnectedStatus() {
+        if(started) {
+            val mNotifyMgr = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            mNotifyMgr?.notify(SERVICE_NOTIFICATION_ID, createNotification()?.build())
+        }
     }
 
     override fun onListenerConnected() {

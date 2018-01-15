@@ -6,6 +6,9 @@ import java.util.*
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLServerSocketFactory
 import jdk.nashorn.internal.runtime.ScriptingFunctions.readLine
+import javax.swing.JOptionPane
+import javafx.scene.control.Alert.AlertType
+import javafx.scene.control.Alert
 
 
 
@@ -30,11 +33,13 @@ class DemoServer : Thread {
 
     private var sock: Socket? = null
     private var isReader: Boolean = false
+    private var inputPromptShown = false
 
     private var scanner: Scanner? = null
 
     constructor(s: Socket, isReader: Boolean) {
-        println("Client connected: " + s.remoteSocketAddress)
+        val t = if(isReader) "reader" else "writer"
+        println("Client connected: ${s.remoteSocketAddress} as $t")
         sock = s
         this.isReader = isReader
     }
@@ -62,11 +67,11 @@ class DemoServer : Thread {
                 val pw = PrintWriter(sock?.getOutputStream())
                 while(true) {
                     val line = getDataToSend()
-                    if(line != null && line.length > 2) {
+                    if(line.length > 2) {
                         pw.println(line)
                         println("- Sending data to [" + sock?.remoteSocketAddress + "] -")
                         pw.flush()
-                    }
+                    }//{"type":"NotificationOperation","id":"me.snoty.mobile#0","actionId":2,"operation":"action","inputValue":"blaaaaaa"}
                 }
             }
             println("closing socket")
@@ -82,7 +87,15 @@ class DemoServer : Thread {
     }
 
     private fun getDataToSend(): String {
-        return scanner?.nextLine() ?: ""
+        val input = scanner?.nextLine()
+        if(input != null && !input.isEmpty() && !inputPromptShown) {
+            inputPromptShown = true
+            println("Showing input")
+            val json = JOptionPane.showInputDialog(null, "Enter JSON") ?: ""
+            inputPromptShown = false
+            return json
+        }
+        return ""
     }
 
 }

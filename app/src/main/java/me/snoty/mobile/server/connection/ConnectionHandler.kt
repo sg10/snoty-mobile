@@ -3,15 +3,13 @@ package me.snoty.mobile.server.connection
 import android.content.Context
 import android.os.AsyncTask
 import android.os.Handler
-import android.preference.PreferenceManager
 import android.util.Log
 import android.widget.Toast
-import me.snoty.mobile.PreferenceConstants
+import me.snoty.mobile.ServerPreferences
 import me.snoty.mobile.notifications.ListenerService
 import me.snoty.mobile.processors.ServerConnection
 import me.snoty.mobile.server.protocol.NetworkPacket
 import java.util.*
-import java.util.concurrent.locks.ReentrantLock
 import android.os.Looper
 import me.snoty.mobile.activities.MainActivity
 
@@ -35,15 +33,10 @@ class ConnectionHandler {
     companion object {
         private val TAG = "ConnHandler"
 
-        val PORT = 9096
-
         val instance: ConnectionHandler by lazy { Holder.INSTANCE }
     }
 
     val trustManager: ServerFingerprintTrustManager = ServerFingerprintTrustManager()
-
-    var serverAddress: String = ""
-        private set
 
     var lastConnectionError: ConnectionError? = null
         private set
@@ -52,46 +45,54 @@ class ConnectionHandler {
 
     var connected: Boolean = false
         set(value) {
-            if(field != value) updateMainActivity()
+            val before = field
             field = value
+            if(before != value) {
+                updateLinkedResources()
+            }
         }
 
     private val requestQueue: LinkedList<NetworkPacket> = LinkedList()
-    private val queueLock = ReentrantLock()
 
     private var requestDelegator: RequestDelegator? = null
 
-    fun updateServerPreferences(context: Context) {
+    fun updateServerPreferences() {
         Log.d(TAG, "Updating server preferences for requests")
 
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+        val serverFingerprint = ServerPreferences.instance.getFingerprint()
+        if(serverFingerprint != null && serverFingerprint != "") {
+            trustManager.setStoredFingerprint(serverFingerprint)
+        }
+        else {
+            Log.e(TAG, "did not update server fingerprint in trust manager")
+        }
 
-        serverAddress = sharedPreferences?.getString(PreferenceConstants.SERVER_IP, "") ?: ""
-
-        val serverFingerprint = sharedPreferences?.getString(PreferenceConstants.SERVER_FINGERPRINT, "") ?: ""
-        trustManager.setStoredFingerprint(serverFingerprint)
-
-        requestDelegator?.refreshServerAddress()
+        requestDelegator?.updateServerPreferences()
     }
 
     fun connect() {
         if (requestDelegator == null || requestDelegator?.isCancelled == true) {
+            updateServerPreferences()
+            Log.d(TAG, "attempting server connect")
             val requestDelegator = RequestDelegator()
             requestDelegator?.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR)
             this.requestDelegator = requestDelegator
         }
     }
 
+    fun disconnect() {
+        requestDelegator?.cancel(true)
+        requestQueue.clear()
+    }
+
     fun getNextRequest(): NetworkPacket? {
         var request: NetworkPacket? = null
 
-        queueLock.lock()
-
-        if (requestQueue.size > 0) {
-            request = requestQueue.remove()
+        synchronized(requestQueue) {
+            if (requestQueue.size > 0) {
+                request = requestQueue.remove()
+            }
         }
-
-        queueLock.unlock()
 
         return request
     }
@@ -99,9 +100,9 @@ class ConnectionHandler {
     fun addRequestToQueue(packet: NetworkPacket) {
         connect()
         Log.d(TAG, "adding request to queue")
-        queueLock.lock()
-        requestQueue.add(packet)
-        queueLock.unlock()
+        synchronized(requestQueue) {
+            requestQueue.add(packet)
+        }
     }
 
     fun processResponse(packet: NetworkPacket) {
@@ -112,6 +113,7 @@ class ConnectionHandler {
         lastConnectionError = reason
         connected = false
 
+        /*
         displayError(reason.name)
 
         when (reason) {
@@ -128,8 +130,9 @@ class ConnectionHandler {
 
             }
         }
+        */
 
-        updateMainActivity()
+        updateLinkedResources()
     }
 
     private fun displayError(text: String) {
@@ -139,8 +142,9 @@ class ConnectionHandler {
         })
     }
 
-    private fun updateMainActivity() {
+    private fun updateLinkedResources() {
         MainActivity.instance?.updateViews()
+        ListenerService.instance?.updateServerConnectedStatus()
     }
 
 }

@@ -15,6 +15,7 @@ class ServerFingerprintTrustManager : X509TrustManager {
     private var storedFingerprint : String? = null
 
     fun setStoredFingerprint(fingerprint : String) {
+        Log.d(TAG, "updating fingerprint in trust manager "+fingerprint)
         storedFingerprint = fingerprint
     }
 

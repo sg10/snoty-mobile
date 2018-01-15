@@ -2,10 +2,12 @@ package me.snoty.mobile.server.connection
 
 import android.os.AsyncTask
 import android.util.Log
+import me.snoty.mobile.ServerPreferences
 import me.snoty.mobile.server.NetworkPacketHandler
 import me.snoty.mobile.server.protocol.NetworkPacket
 import java.io.*
 import java.net.Inet4Address
+import java.net.InetSocketAddress
 import java.security.SecureRandom
 import java.util.concurrent.locks.ReentrantLock
 import javax.net.ssl.SSLContext
@@ -22,11 +24,13 @@ class RequestDelegator : AsyncTask<Void, Void, Boolean>() {
 
     private var socket : SSLSocket? = null
 
-    private var serverAddressChanged : Boolean = true
-    fun refreshServerAddress() { serverAddressChanged = true }
-
     private var sendThreadRunning : Boolean = false
     private var receiveThreadRunning : Boolean = false
+
+    private var updateServerPreferences = true
+    fun updateServerPreferences() { updateServerPreferences = true }
+
+    private val socketConnectTimeout = 10000
 
     override fun doInBackground(vararg x: Void): Boolean {
         val sslContext = SSLContext.getInstance("TLSv1.2")
@@ -34,25 +38,32 @@ class RequestDelegator : AsyncTask<Void, Void, Boolean>() {
         val ssf: SSLSocketFactory = sslContext.socketFactory
 
         try {
-            while (true) {
-                val serverAddress = ConnectionHandler.instance.serverAddress
+            var serverAddress = ""
 
-                if (ConnectionHandler.instance.serverAddress == "") {
+            while (true) {
+                if(updateServerPreferences) {
+                    updateServerPreferences = false
+                    serverAddress = ServerPreferences.instance.getAddress()
+                }
+
+                if (serverAddress == "") {
                     Log.d(TAG, "no connection data set")
                     handleError(ConnectionHandler.ConnectionError.NO_SERVER_SET)
                     return false
                 }
 
-                if (serverAddressChanged || socket == null || socket?.isConnected != true
+
+                if (socket == null || socket?.isConnected != true
                         || socket?.isClosed == true) {
-                    serverAddressChanged = false
 
                     val addr = Inet4Address.getByName(serverAddress)
+                    val port = ServerPreferences.instance.getPort()
 
-                    Log.d(TAG, "establishing connection to $addr:${ConnectionHandler.PORT} ...")
-                    val newSocket = ssf.createSocket(addr, ConnectionHandler.PORT) as SSLSocket
+                    Log.d(TAG, "establishing connection to $addr:$port ...")
+                    val newSocket = ssf.createSocket() as SSLSocket
+                    newSocket.connect(InetSocketAddress(addr, port), socketConnectTimeout)
 
-                    newSocket.startHandshake() // throws SSLHandshakeException
+                    newSocket.startHandshake()
 
                     Log.d(TAG, "socket created")
                     ConnectionHandler.instance.connected = true
@@ -68,7 +79,7 @@ class RequestDelegator : AsyncTask<Void, Void, Boolean>() {
                     break
                 }
 
-                Thread.sleep(2000)
+                Thread.sleep(1000)
             }
 
         } catch (ex: IOException) {
@@ -83,12 +94,16 @@ class RequestDelegator : AsyncTask<Void, Void, Boolean>() {
             Log.d(TAG, "no server connection possible: ${ex.message}")
             handleError(ConnectionHandler.ConnectionError.FINGERPRINT_NO_MATCH)
         }
-        if (ex.message?.contains("ECONNREFUSED") == true) {
+        else if (ex.message?.contains("Connection reset by peer") == true) {
+            Log.d(TAG, "connection closed by server")
+            handleError(ConnectionHandler.ConnectionError.CONNECTION_CLOSED)
+        }
+        else if (ex.message?.contains("ECONNREFUSED") == true) {
             Log.d(TAG, "connection refused")
             handleError(ConnectionHandler.ConnectionError.CONNECTION_REFUSED)
-        } else {
-            Log.e(TAG, "Caught IO Exception", ex)
-            Log.e(TAG, ex.message)
+        }
+        else {
+            Log.e(TAG, "Caught Exception", ex)
             handleError(ConnectionHandler.ConnectionError.CONNECTION_CLOSED)
         }
     }
@@ -121,7 +136,6 @@ class RequestDelegator : AsyncTask<Void, Void, Boolean>() {
                         Log.d(TAG, "sending data\n" + NetworkPacketHandler.instance.toPrettyJSON(packet))
                         val writer = BufferedWriter(OutputStreamWriter(socket?.outputStream))
                         writer.write(data + "\n")
-                        writer.flush()
                         writer.close()
                         Log.d(TAG, "sent!")
                     }
@@ -182,5 +196,9 @@ class RequestDelegator : AsyncTask<Void, Void, Boolean>() {
                 synchronized(receiveThreadRunning) { receiveThreadRunning = false }
             }
         }).start()
+    }
+
+    override fun onCancelled() {
+        ConnectionHandler.instance.connected = false
     }
 }

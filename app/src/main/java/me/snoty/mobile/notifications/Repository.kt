@@ -88,14 +88,20 @@ class Repository private constructor(){
     }
 
     private fun getNotificationId(sbn : StatusBarNotification) : String {
-        return sbn.packageName+"#"+sbn.id
+        return sbn.packageName+"#"+sbn.id+"#"+sbn.tag
     }
 
     private fun getSummary(sbn : StatusBarNotification) : String {
         val extras = sbn?.notification?.extras
         val title = extras?.get(Notification.EXTRA_TITLE)?.toString()
         val text = extras?.get(Notification.EXTRA_TEXT)?.toString()
-        return getNotificationId(sbn) + "\t" + title + "\t" + text
+        val channel = extras?.get(Notification.EXTRA_CHANNEL_ID)?.toString()
+        val groupInfo = sbn.groupKey
+        return getNotificationId(sbn) +
+                "\t" + channel +
+                "\t" + title + "\t" + text +
+                "\tgroup: " + groupInfo
+
     }
 
 }

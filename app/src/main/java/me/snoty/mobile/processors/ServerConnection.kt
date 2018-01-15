@@ -25,6 +25,7 @@ class ServerConnection : ProcessorInterface {
 
     constructor() {
         ConnectionHandler.instance.serverConnectionListener = this
+        ConnectionHandler.instance.connect()
     }
 
     override fun created(id: String, n: StatusBarNotification) {
@@ -45,7 +46,12 @@ class ServerConnection : ProcessorInterface {
     fun receivedCommand(packet: NetworkPacket) {
         Log.d(TAG, "received command\n$packet")
         if(packet is NotificationOperationPacket) {
-            Actions.instance.close(packet.id)
+            if(packet.operation == NotificationOperationPacket.NotificationOperation.close) {
+                Actions.instance.close(packet.id)
+            }
+            else {
+                Actions.instance.action(packet.id, packet.actionId, packet.inputValue)
+            }
         }
     }
 }

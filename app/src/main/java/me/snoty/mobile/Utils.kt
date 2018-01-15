@@ -1,6 +1,7 @@
 package me.snoty.mobile
 
 import android.util.Log
+import java.math.BigInteger
 import java.security.MessageDigest
 import java.security.cert.X509Certificate
 import java.util.*
@@ -30,6 +31,9 @@ class Utils {
             return formatter.toString()
         }
 
+        fun hexStringToByteArray(s : String) : ByteArray {
+            return BigInteger(s,16).toByteArray()
+        }
 
     }
 

@@ -12,7 +12,7 @@ class NotificationOperationPacket : NetworkPacket {
 
     var id : String? = null
     var operation: NotificationOperation? = null
-    var actionId : Number? = null
+    var actionId : Int? = null
     var inputValue : String? = null
 
     enum class NotificationOperation {

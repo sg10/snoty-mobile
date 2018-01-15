@@ -30,7 +30,7 @@ class Filter(private val context : Context) {
         load()
     }
 
-    fun load() {
+    private fun load() {
         PREF_PACKAGES = context.getString(R.string.preference_ignored_packages_key)
         PREF_NOCLEAR = context.getString(R.string.preference_noclear_key)
 
@@ -40,7 +40,7 @@ class Filter(private val context : Context) {
         Log.d(TAG, "Filtered packages: \n" + ignoredPackagesString.replace(";", "\n\t"))
         ignoredPackages.addAll(ignoredPackagesString!!.split(";"))
 
-        ignoreNotClearable = mPref.getBoolean(PREF_NOCLEAR, false)
+        ignoreNotClearable = mPref.getBoolean(PREF_NOCLEAR, ignoreNotClearable)
         Log.d(TAG, "Ignore non-clearable: " + ignoreNotClearable)
     }
 

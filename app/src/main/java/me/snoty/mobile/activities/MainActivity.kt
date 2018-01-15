@@ -3,6 +3,7 @@ package me.snoty.mobile.activities
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -10,17 +11,20 @@ import android.graphics.Color
 import android.os.Bundle
 import android.provider.Settings
 import android.support.v4.app.NotificationCompat
+import android.support.v4.app.RemoteInput
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.*
+import me.snoty.mobile.Cryptography
 import me.snoty.mobile.R
 import me.snoty.mobile.notifications.ListenerHandler
 import me.snoty.mobile.notifications.ListenerService
 import me.snoty.mobile.processors.HistoryList
 import me.snoty.mobile.processors.history.NotificationHistoryItem
 import me.snoty.mobile.server.connection.ConnectionHandler
+import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -37,6 +41,8 @@ class MainActivity : AppCompatActivity() {
 
     private val DEMO_CHANNEL_ID: String = "Demo NotificationPostedPacket"
 
+    private val TEXT_INTENT_KEY: String = "textIntentKey"
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val inflater = menuInflater
         inflater.inflate(R.menu.main_menu, menu)
@@ -50,8 +56,7 @@ class MainActivity : AppCompatActivity() {
                 return true
             }
             R.id.scanCertificateItem -> {
-                val intent = Intent(this, CertificateScannerActivity::class.java)
-                startActivity(intent)
+                startActivity(Intent(this, CertificateScannerActivity::class.java))
                 return true
             }
         }
@@ -107,15 +112,43 @@ class MainActivity : AppCompatActivity() {
 
         val testNotificationButton: Button = findViewById(R.id.testNotificationButton)
         testNotificationButton.setOnClickListener {
-            val mNotifyBuilder = NotificationCompat.Builder(this@MainActivity, DEMO_CHANNEL_ID)
-            mNotifyBuilder.mContentTitle = "Demo Notification"
-            mNotifyBuilder.mContentText = "Notification #$demoNotificationCounter"
-            mNotifyBuilder.setChannelId(DEMO_CHANNEL_ID)
-            mNotifyBuilder.setSmallIcon(R.drawable.notification_icon_background)
-
-            val mNotifyMgr = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            mNotifyMgr.notify(demoNotificationCounter++, mNotifyBuilder.build())
+            showDemoNotification()
         }
+    }
+
+    private fun showDemoNotification() {
+        val mNotifyBuilder = NotificationCompat.Builder(this@MainActivity, DEMO_CHANNEL_ID)
+        mNotifyBuilder.mContentTitle = "Demo Notification"
+        mNotifyBuilder.mContentText = "Notification #$demoNotificationCounter"
+        mNotifyBuilder.setChannelId(DEMO_CHANNEL_ID)
+                .setSmallIcon(R.drawable.notification_icon_background)
+        val mainActivityIntent = Intent(this, this::class.java)
+        mainActivityIntent.flags = (Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        mainActivityIntent.putExtra("demo_id", demoNotificationCounter)
+        val chromeIntent = PendingIntent.getActivity(this, 0, packageManager.getLaunchIntentForPackage("com.android.chrome"), PendingIntent.FLAG_CANCEL_CURRENT)
+        val chromeAction = NotificationCompat.Action(12, "Start Chrome", chromeIntent)
+        val appIntent = PendingIntent.getActivity(this, 0, Intent(this, this::class.java), PendingIntent.FLAG_CANCEL_CURRENT)
+        val openAppAction = NotificationCompat.Action(12, "Open App", appIntent)
+        val uniqueInt = (System.currentTimeMillis() and 0xfffffff).toInt()
+        val textIntent = PendingIntent.getActivity(this, uniqueInt,
+                mainActivityIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT)
+        val remoteInput = RemoteInput.Builder(TEXT_INTENT_KEY)
+                .setLabel("Some Text")
+                .build()
+        val enterTextAction = NotificationCompat.Action
+                .Builder(12, "Enter Text", textIntent)
+                .addRemoteInput(remoteInput)
+                .build()
+        mNotifyBuilder
+                .addAction(chromeAction)
+                .addAction(openAppAction)
+                .addAction(enterTextAction)
+                .setAutoCancel(true)
+
+        val mNotifyMgr = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        mNotifyMgr.notify(demoNotificationCounter, mNotifyBuilder.build())
+        demoNotificationCounter++
     }
 
     private fun updateNotificationsHistoryList() {
@@ -128,7 +161,7 @@ class MainActivity : AppCompatActivity() {
     private fun checkListenerPermissionGranted() : Boolean {
         val cn = ComponentName(this, ListenerService::class.java)
         val flat = Settings.Secure.getString(this.contentResolver, "enabled_notification_listeners")
-        return flat != null && flat!!.contains(cn.flattenToString())
+        return flat != null && flat.contains(cn.flattenToString())
     }
 
 
@@ -167,10 +200,33 @@ class MainActivity : AppCompatActivity() {
                 label.text = "Connected"
             }
             else {
+                /*
+                // show QR certificate scan if no server set
+                if(ConnectionHandler.instance.lastConnectionError ==
+                        me.snoty.mobile.server.connection.ConnectionHandler.ConnectionError.NO_SERVER_SET) {
+                    startActivity(Intent(this, CertificateScannerActivity::class.java))
+                }*/
+
                 label.setTextColor(Color.RED)
                 label.text = ConnectionHandler.instance.lastConnectionError?.name ?: ""
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        Log.d(TAG, "received intent in MainActivity")
+        val results = RemoteInput.getResultsFromIntent(intent)
+        if (results != null) {
+            val quickReplyResult = results.getCharSequence(TEXT_INTENT_KEY)
+            Log.d(TAG, "remote input: $quickReplyResult")
+            Toast.makeText(this, "entered: $quickReplyResult", Toast.LENGTH_LONG).show()
+        }
+        val demo_id = intent?.getIntExtra("demo_id", -1) ?: -1
+        if(demo_id != -1) {
+            val mNotifyMgr = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            mNotifyMgr.cancel(demo_id)
+        }
+        super.onNewIntent(intent)
     }
 
 }
