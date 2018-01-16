@@ -17,6 +17,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    postBuild.dependsOn copyFiles
 }
 
 repositories{
@@ -37,6 +38,14 @@ dependencies {
     compile 'me.dm7.barcodescanner:zxing:1.9'
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.0"
 }
+
 repositories {
     mavenCentral()
+}
+
+task copyBuilt(type: Copy) {
+    description = 'copying built file ...'
+    from 'src/main'
+    into project(':Path:To:ModuleFrom:Settings.gradle').file('./')
+    include 'file1.suffix'
 }
