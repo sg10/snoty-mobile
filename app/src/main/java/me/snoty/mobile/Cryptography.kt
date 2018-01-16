@@ -48,6 +48,12 @@ class Cryptography {
 
     @Throws(NoSuchProviderException::class, NoSuchAlgorithmException::class, InvalidAlgorithmParameterException::class)
     fun createKeys() {
+        Log.d(TAG, "checking if keypair already exists")
+        if(loadPrivateKey() != null && loadPrivateKey() != null) {
+            Log.d(TAG, "found public (shared prefs) and private key (keystore)")
+            return
+        }
+
         Log.d(TAG, "generating key pair")
 
         val start = GregorianCalendar()
@@ -70,7 +76,6 @@ class Cryptography {
                     .setStartDate(start.time)
                     .setEndDate(end.time)
                     .build()
-
 
         } else {
             spec = KeyGenParameterSpec.Builder(mAlias, KeyProperties.PURPOSE_DECRYPT or KeyProperties.PURPOSE_ENCRYPT)
@@ -104,7 +109,7 @@ class Cryptography {
     }
 
     private fun decryptData(inputHexStr : String) : String {
-        val privateKey = getPrivateKey()
+        val privateKey = loadPrivateKey()
 
         if(privateKey == null) {
             Log.e(TAG, "error loading private key")
@@ -147,7 +152,7 @@ class Cryptography {
         return Utils.byteArrayToHexString(encryptedBytes)
     }
 
-    private fun getPrivateKey(): PrivateKey? {
+    private fun loadPrivateKey(): PrivateKey? {
         val ks = KeyStore.getInstance(KEYSTORE_PROVIDER_ANDROID_KEYSTORE)
 
         ks.load(null)
@@ -174,14 +179,18 @@ class Cryptography {
             Log.d(TAG, "loading public key from shared preferences")
             val publicKeyString = PreferenceManager.getDefaultSharedPreferences(context)
                     .getString(PREFS_PUBLIC_KEY, "")
-            if(publicKey == null) {
+            if(publicKeyString == "") {
+                createKeys()
                 return
             }
             val keyBytes = Utils.hexStringToByteArray(publicKeyString)
             this.publicKey = KeyFactory.getInstance("RSA")
-                    .generatePublic(X509EncodedKeySpec(keyBytes))
+                    .generatePublic(X509EncodedKeySpec(keyBytes)) ?: this.publicKey
 
             Log.d(TAG, "Public key is  " + publicKey)
+        }
+        else if(context == null) {
+            Log.d(TAG, "tried to load public key, but no context available")
         }
     }
 

@@ -45,6 +45,7 @@ class ListenerService : NotificationListenerService() {
 
     override fun onBind(intent: Intent?): IBinder {
         Log.d(TAG, "listener bind")
+        instance = this
         setStarted()
         ConnectionHandler.instance.updateServerPreferences()
         return super.onBind(intent)
@@ -74,6 +75,7 @@ class ListenerService : NotificationListenerService() {
     override fun onListenerConnected() {
         Log.d(TAG, "Listener connected")
         this.listenerConnected = true
+        instance = this
         super.onListenerConnected()
     }
 
