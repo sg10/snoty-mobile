@@ -20,6 +20,7 @@ import android.view.View
 import android.widget.*
 import me.snoty.mobile.Cryptography
 import me.snoty.mobile.R
+import me.snoty.mobile.ServerPreferences
 import me.snoty.mobile.notifications.ListenerHandler
 import me.snoty.mobile.notifications.ListenerService
 import me.snoty.mobile.processors.HistoryList
@@ -115,6 +116,17 @@ class MainActivity : AppCompatActivity() {
         testNotificationButton.setOnClickListener {
             showDemoNotification()
         }
+
+        val grantListenerButton = findViewById<Button>(R.id.buttonGrantListener)
+        grantListenerButton.setOnClickListener {
+            startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+        }
+
+        val scanCodeButton = findViewById<Button>(R.id.buttonScanCode)
+        scanCodeButton.setOnClickListener {
+            startActivity(Intent(this, CertificateScannerActivity::class.java))
+        }
+
     }
 
     private fun showDemoNotification() {
@@ -126,8 +138,7 @@ class MainActivity : AppCompatActivity() {
         val mainActivityIntent = Intent(this, this::class.java)
         mainActivityIntent.flags = (Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         mainActivityIntent.putExtra("demo_id", demoNotificationCounter)
-        val chromeIntent = PendingIntent.getActivity(this, 0, packageManager.getLaunchIntentForPackage("com.android.chrome"), PendingIntent.FLAG_CANCEL_CURRENT)
-        val chromeAction = NotificationCompat.Action(12, "Start Chrome", chromeIntent)
+
         val appIntent = PendingIntent.getActivity(this, 0, Intent(this, this::class.java), PendingIntent.FLAG_CANCEL_CURRENT)
         val openAppAction = NotificationCompat.Action(12, "Open App", appIntent)
         val uniqueInt = (System.currentTimeMillis() and 0xfffffff).toInt()
@@ -142,10 +153,17 @@ class MainActivity : AppCompatActivity() {
                 .addRemoteInput(remoteInput)
                 .build()
         mNotifyBuilder
-                .addAction(chromeAction)
                 .addAction(openAppAction)
                 .addAction(enterTextAction)
                 .setAutoCancel(true)
+
+        val chromeLaunchIntent = packageManager.getLaunchIntentForPackage("com.android.chrome")
+        if(chromeLaunchIntent != null) {
+            val chromeIntent = PendingIntent.getActivity(this, 0, chromeLaunchIntent, PendingIntent.FLAG_CANCEL_CURRENT)
+            val chromeAction = NotificationCompat.Action(12, "Start Chrome", chromeIntent)
+            mNotifyBuilder.addAction(chromeAction)
+        }
+
 
         val mNotifyMgr = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         mNotifyMgr.notify(demoNotificationCounter, mNotifyBuilder.build())
@@ -219,17 +237,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun updateStatusProgresses() {
-        val textListener = findViewById<CheckedTextView>(R.id.statusTextListener)
-        val progressListener = findViewById<ProgressBar>(R.id.progressBarListener)
+        val listenerVisibility = if(checkListenerPermissionGranted()) View.GONE
+                                 else View.VISIBLE
+        findViewById<LinearLayout>(R.id.statusListener).visibility = listenerVisibility
 
-        if(checkListenerPermissionGranted()) {
-            textListener.setTextColor(Color.GREEN)
-            progressListener.visibility = View.GONE
-        }
-        else {
-            textListener.setTextColor(Color.RED)
-            progressListener.visibility = View.VISIBLE
-        }
+        val codeVisibility = if(ServerPreferences.instance.getFingerprint() != "") View.GONE
+                             else View.VISIBLE
+        findViewById<LinearLayout>(R.id.statusCode).visibility = codeVisibility
+
+        val serverVisibility =
+                if(ConnectionHandler.instance.connected) View.GONE else View.VISIBLE
+        findViewById<LinearLayout>(R.id.statusConnection).visibility = serverVisibility
+
+
     }
 
     override fun onNewIntent(intent: Intent?) {

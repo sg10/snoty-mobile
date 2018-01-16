@@ -7,6 +7,7 @@
     tools:context="me.snoty.mobile.activities.MainActivity">
 
     <LinearLayout
+        android:animateLayoutChanges="true"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginEnd="32dp"
@@ -18,76 +19,129 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
+            android:id="@+id/statusListener"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:visibility="gone">
+            android:layout_marginBottom="20sp"
+            android:background="@color/colorPrimary"
+            android:orientation="vertical"
+            android:padding="15sp">
 
-            <CheckedTextView
-                android:id="@+id/statusTextListener"
-                android:layout_width="wrap_content"
-                android:layout_height="50sp"
-                android:layout_marginBottom="10sp"
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:checked="false"
-                android:paddingTop="10sp"
-                android:text="Listener Permission"
-                android:textSize="20sp" />
+                android:orientation="horizontal">
 
-            <ProgressBar
-                android:id="@+id/progressBarListener"
-                style="?android:attr/progressBarStyle"
-                android:layout_width="60sp"
-                android:layout_height="50sp"
-                android:layout_weight="0" />
+                <CheckedTextView
+                    android:id="@+id/statusTextListener"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50sp"
+                    android:layout_marginBottom="10sp"
+                    android:layout_weight="1"
+                    android:checked="false"
+                    android:paddingLeft="5sp"
+                    android:paddingTop="10sp"
+                    android:text="Listener Permission"
+                    android:textSize="20sp" />
+
+                <ProgressBar
+                    android:id="@+id/progressBarListener"
+                    style="?android:attr/progressBarStyle"
+                    android:layout_width="60sp"
+                    android:layout_height="50sp"
+                    android:layout_weight="0" />
+
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/buttonGrantListener"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="@color/colorPrimaryDark"
+                android:text="Grant" />
+
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/statusCode"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:visibility="gone">
+            android:layout_marginBottom="20sp"
+            android:background="@color/colorPrimary"
+            android:orientation="vertical"
+            android:padding="15sp">
 
-            <CheckedTextView
-                android:id="@+id/statusTextCode"
-                android:layout_width="wrap_content"
-                android:layout_height="50sp"
-                android:layout_marginBottom="10sp"
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:paddingTop="10sp"
-                android:text="Server Code"
-                android:textSize="20sp" />
+                android:orientation="horizontal">
 
-            <ProgressBar
-                android:id="@+id/progressBarCode"
-                style="?android:attr/progressBarStyle"
-                android:layout_width="60sp"
-                android:layout_height="50sp"
-                android:layout_weight="0" />
+                <CheckedTextView
+                    android:id="@+id/statusTextCode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50sp"
+                    android:layout_marginBottom="10sp"
+                    android:layout_weight="1"
+                    android:paddingLeft="5sp"
+                    android:paddingTop="10sp"
+                    android:text="Server Code"
+                    android:textSize="20sp" />
+
+                <ProgressBar
+                    android:id="@+id/progressBarCode"
+                    style="?android:attr/progressBarStyle"
+                    android:layout_width="60sp"
+                    android:layout_height="50sp"
+                    android:layout_weight="0" />
+
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/buttonScanCode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="@color/colorPrimaryDark"
+                android:text="Scan" />
+
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/statusConnection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:visibility="gone">
+            android:layout_marginBottom="20sp"
+            android:background="@color/colorPrimary"
+            android:orientation="vertical"
+            android:padding="15sp">
 
-            <CheckedTextView
-                android:id="@+id/statusTextConnection"
-                android:layout_width="wrap_content"
-                android:layout_height="50sp"
-                android:layout_marginBottom="10sp"
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:paddingTop="10sp"
-                android:text="Server Connection"
-                android:textSize="20sp" />
+                android:orientation="horizontal">
 
-            <ProgressBar
-                android:id="@+id/progressBarConnected"
-                style="?android:attr/progressBarStyle"
-                android:layout_width="60sp"
-                android:layout_height="50sp"
-                android:layout_weight="0" />
+                <CheckedTextView
+                    android:id="@+id/statusTextConnection"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50sp"
+                    android:layout_weight="1"
+                    android:paddingLeft="5sp"
+                    android:paddingTop="10sp"
+                    android:text="Server Connection"
+                    android:textSize="20sp" />
+
+                <ProgressBar
+                    android:id="@+id/progressBarConnected"
+                    style="?android:attr/progressBarStyle"
+                    android:layout_width="60sp"
+                    android:layout_height="50sp"
+                    android:layout_weight="0" />
+
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout

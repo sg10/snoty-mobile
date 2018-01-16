@@ -16,8 +16,13 @@ class NetworkPacketHandler private constructor() {
     private object Holder { val INSTANCE = NetworkPacketHandler() }
 
     private var secret = ""
-    fun setSecret(secret : String) {
-        this.secret = secret
+    fun setSecret(newSecret: String) {
+        if(newSecret != "") {
+            this.secret = newSecret
+        }
+        else {
+            Log.w(TAG, "attempted to set empty secret")
+        }
     }
 
     companion object {
