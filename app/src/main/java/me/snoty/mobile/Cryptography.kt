@@ -23,6 +23,8 @@ import javax.security.auth.x500.X500Principal
 
 /**
  * Created by Stefan on 15.01.2018.
+ * adapted from the AndroidKeystoreSample, linked in the official docs
+ * https://github.com/googlesamples/android-BasicAndroidKeyStore/
  */
 class Cryptography {
 

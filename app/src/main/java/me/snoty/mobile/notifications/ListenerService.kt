@@ -12,6 +12,7 @@ import android.service.notification.StatusBarNotification
 import android.support.v4.app.NotificationCompat
 import android.support.v4.app.NotificationManagerCompat
 import android.util.Log
+import android.widget.Toast
 import me.snoty.mobile.R
 import me.snoty.mobile.activities.MainActivity
 import me.snoty.mobile.server.connection.ConnectionHandler
@@ -32,6 +33,7 @@ class ListenerService : NotificationListenerService() {
     private var filter : Filter? = null
 
     private var started = true
+    private var listenerConnected = false
 
     override fun onBind(intent: Intent?): IBinder {
         Log.d(TAG, "listener bind")
@@ -49,12 +51,23 @@ class ListenerService : NotificationListenerService() {
         super.onCreate()
     }
 
+    override fun onListenerConnected() {
+        Log.d(TAG, "Listener connected")
+        this.listenerConnected = true
+        super.onListenerConnected()
+    }
+
     fun setStarted() {
-        ConnectionHandler.instance.updateServerPreferences()
-        started = true
-        Log.d(TAG, "ListenerService started (flag)")
-        val mNotifyMgr = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        mNotifyMgr.notify(SERVICE_NOTIFICATION_ID, createNotification().build())
+        if(listenerConnected) {
+            ConnectionHandler.instance.updateServerPreferences()
+            started = true
+            Log.d(TAG, "ListenerService started (flag)")
+            val mNotifyMgr = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            mNotifyMgr.notify(SERVICE_NOTIFICATION_ID, createNotification().build())
+        }
+        else {
+            Toast.makeText(this, "Could not link to notification listener (zombie service)", Toast.LENGTH_LONG)
+        }
     }
 
     fun setStopped() {
@@ -119,11 +132,6 @@ class ListenerService : NotificationListenerService() {
             val mNotifyMgr = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             mNotifyMgr?.notify(SERVICE_NOTIFICATION_ID, createNotification()?.build())
         }
-    }
-
-    override fun onListenerConnected() {
-        Log.d(TAG, "Listener connected")
-        super.onListenerConnected()
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
