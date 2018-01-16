@@ -17,7 +17,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    postBuild.dependsOn copyFiles
 }
 
 repositories{
@@ -43,9 +42,3 @@ repositories {
     mavenCentral()
 }
 
-task copyBuilt(type: Copy) {
-    description = 'copying built file ...'
-    from 'src/main'
-    into project(':Path:To:ModuleFrom:Settings.gradle').file('./')
-    include 'file1.suffix'
-}
