@@ -55,13 +55,13 @@ class Actions {
                     action.remoteInputs.forEach {
                         localBundle.putCharSequence(it.resultKey, inputValue)
                     }
+                    RemoteInput.addResultsToIntent(action.remoteInputs, localIntent, localBundle)
                 }
-                RemoteInput.addResultsToIntent(action.remoteInputs, localIntent, localBundle)
                 pendingIntent.send(ListenerService.instance, 0, localIntent)
                 Log.d(TAG, "sent intent for action")
             }
             catch(ex : Exception) {
-                Log.w(TAG, ex.message)
+                Log.w(TAG, ex.message, ex)
             }
         }
         else {
