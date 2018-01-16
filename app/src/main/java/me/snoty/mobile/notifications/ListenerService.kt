@@ -5,6 +5,7 @@ import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
 import android.preference.PreferenceManager
 import android.service.notification.NotificationListenerService
@@ -13,6 +14,7 @@ import android.support.v4.app.NotificationCompat
 import android.support.v4.app.NotificationManagerCompat
 import android.util.Log
 import android.widget.Toast
+import me.snoty.mobile.Cryptography
 import me.snoty.mobile.R
 import me.snoty.mobile.activities.MainActivity
 import me.snoty.mobile.server.connection.ConnectionHandler
@@ -33,7 +35,13 @@ class ListenerService : NotificationListenerService() {
     private var filter : Filter? = null
 
     private var started = true
-    private var listenerConnected = false
+
+    // due to an Android cache bug, sometimes the service
+    // becomes inaccessible (zombie service) and the app can't
+    // reconnect anymore
+    // todo: link stackoverflow page
+    var listenerConnected = false
+        private set
 
     override fun onBind(intent: Intent?): IBinder {
         Log.d(TAG, "listener bind")
@@ -48,6 +56,18 @@ class ListenerService : NotificationListenerService() {
             filter = Filter(this)
         }
         Repository.reset()
+
+        val handler = Handler()
+        handler.postDelayed({
+            // create new key pair
+            // (we had to initalize the key store somewhere, so why not here ...)
+            try {
+                Cryptography.instance.createKeys()
+            } catch (ex: Exception) {
+                Log.e(TAG, ex.message)
+            }
+        }, 500)
+
         super.onCreate()
     }
 
@@ -58,16 +78,11 @@ class ListenerService : NotificationListenerService() {
     }
 
     fun setStarted() {
-        if(listenerConnected) {
-            ConnectionHandler.instance.updateServerPreferences()
-            started = true
-            Log.d(TAG, "ListenerService started (flag)")
-            val mNotifyMgr = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            mNotifyMgr.notify(SERVICE_NOTIFICATION_ID, createNotification().build())
-        }
-        else {
-            Toast.makeText(this, "Could not link to notification listener (zombie service)", Toast.LENGTH_LONG)
-        }
+        ConnectionHandler.instance.updateServerPreferences()
+        started = true
+        Log.d(TAG, "ListenerService started (flag)")
+        val mNotifyMgr = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        mNotifyMgr.notify(SERVICE_NOTIFICATION_ID, createNotification().build())
     }
 
     fun setStopped() {

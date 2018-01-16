@@ -48,6 +48,8 @@ class Cryptography {
 
     @Throws(NoSuchProviderException::class, NoSuchAlgorithmException::class, InvalidAlgorithmParameterException::class)
     fun createKeys() {
+        Log.d(TAG, "generating key pair")
+
         val start = GregorianCalendar()
         val end = GregorianCalendar()
         end.add(Calendar.YEAR, 1)
@@ -82,12 +84,15 @@ class Cryptography {
         }
 
         kpGenerator.initialize(spec)
+        Log.d(TAG, "saved private key to key chain")
 
         val kp = kpGenerator.generateKeyPair()
         Log.d(TAG, "Public Key is: " + kp.public.toString())
 
         publicKey = kp.public
         savePublicKey(kp.public)
+
+        Log.d(TAG, "saved public key to shared prefs")
     }
 
     private fun getTransformation(): String {
@@ -98,7 +103,7 @@ class Cryptography {
         return transformation
     }
 
-    fun decryptData(inputHexStr : String) : String {
+    private fun decryptData(inputHexStr : String) : String {
         val privateKey = getPrivateKey()
 
         if(privateKey == null) {
@@ -121,7 +126,7 @@ class Cryptography {
 
     @Throws(KeyStoreException::class, UnrecoverableEntryException::class, NoSuchAlgorithmException::class, InvalidKeyException::class,
             SignatureException::class, IOException::class, CertificateException::class)
-    fun encryptData(inputStr: String): String? {
+    private fun encryptData(inputStr: String): String? {
         loadPublicKey()
 
         if(publicKey == null) {
@@ -194,4 +199,36 @@ class Cryptography {
             Log.e(TAG, "error saving public key, context was null")
         }
     }
+
+    fun attemptEncryptData(inputStr: String) : String? {
+        Log.d(TAG, "encrypting: $inputStr")
+        if(inputStr != "") {
+            try {
+                return encryptData(inputStr)
+            }
+            catch(ex : Exception) {
+                Log.w(TAG, "error encrypting data ($inputStr)", ex)
+            }
+        }
+        else {
+            Log.w(TAG, "data to encrypt was empty")
+        }
+        return ""
+    }
+
+    fun attemptDecryptData(inputStr: String) : String {
+        if(inputStr != "") {
+            try {
+                return decryptData(inputStr)
+            }
+            catch(ex : Exception) {
+                Log.w(TAG, "error decrypting data ($inputStr)", ex)
+            }
+        }
+        else {
+            Log.w(TAG, "data to decrypt was empty")
+        }
+        return ""
+    }
+
 }

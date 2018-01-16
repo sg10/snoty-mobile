@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import me.snoty.mobile.server.protocol.NetworkPacket
+import me.snoty.mobile.server.protocol.NotificationPostedPacket
+import me.snoty.mobile.server.protocol.NotificationRemovedPacket
 
 /**
  * Created by Stefan on 06.01.2018.
@@ -12,6 +14,11 @@ import me.snoty.mobile.server.protocol.NetworkPacket
 class NetworkPacketHandler private constructor() {
 
     private object Holder { val INSTANCE = NetworkPacketHandler() }
+
+    private var secret = ""
+    fun setSecret(secret : String) {
+        this.secret = secret
+    }
 
     companion object {
         private val TAG = "NetPackHan"
@@ -29,6 +36,13 @@ class NetworkPacketHandler private constructor() {
     }
 
     fun toJSON(packet : NetworkPacket) : String {
+        if(packet is NotificationRemovedPacket) {
+            packet.secret = this.secret
+        }
+        if(packet is NotificationPostedPacket) {
+            packet.secret = this.secret
+        }
+
         return objectMapper.writeValueAsString(packet)
     }
 

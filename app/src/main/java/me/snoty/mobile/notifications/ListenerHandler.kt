@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import me.snoty.mobile.server.connection.ConnectionHandler
 
 
@@ -19,9 +20,9 @@ class ListenerHandler {
         fun start(context : Context) {
             Log.d(TAG, "supposed to start listener service")
 
-            var instance = ListenerService.instance
+            var listenerInstance = ListenerService.instance
 
-            if(instance == null) {
+            if(listenerInstance == null) {
                 Log.d(TAG, "cold start")
                 val serviceIntent = Intent(context, ListenerService::class.java)
                 if (Build.VERSION.SDK_INT >= 26) {
@@ -30,9 +31,16 @@ class ListenerHandler {
                     context.startService(serviceIntent)
                 }
             }
-            else if(!instance.isStarted()) {
+            else if(!listenerInstance.isStarted()) {
                 Log.d(TAG, "restart")
-                instance.setStarted()
+                listenerInstance.setStarted()
+            }
+            else if(!listenerInstance.listenerConnected) {
+                Toast.makeText(listenerInstance,
+                        "Could not link to notification listener (zombie service)",
+                        Toast.LENGTH_LONG)
+                        .show()
+                Log.e(TAG, "Could not link to notification listener (zombie service)")
             }
             else {
                 Log.d(TAG, "listener already running")

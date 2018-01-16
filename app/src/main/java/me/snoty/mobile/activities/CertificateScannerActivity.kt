@@ -20,7 +20,8 @@ import me.snoty.mobile.server.connection.ConnectionHandler
 
 
 /**
- * Created by Stefan on 07.01.2018.
+ * handles scanning the QR code and initalizes encrypting/saving
+ * the server connection data
  */
 class CertificateScannerActivity : AppCompatActivity(), ZXingScannerView.ResultHandler{
 
@@ -32,6 +33,7 @@ class CertificateScannerActivity : AppCompatActivity(), ZXingScannerView.ResultH
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         // Programmatically initialize the scanner view
         val scannerView = ZXingScannerView(this)
         scannerView.setFormats(listOf(BarcodeFormat.QR_CODE))
@@ -46,8 +48,8 @@ class CertificateScannerActivity : AppCompatActivity(), ZXingScannerView.ResultH
         Log.d("TAG", rawResult?.barcodeFormat.toString())
 
         if(rawResult?.text != null) {
-            this.finish()
             saveCertificateToPreferences(rawResult.text)
+            this.finish()
         }
         else {
             mScannerView?.resumeCameraPreview(this)
@@ -62,30 +64,29 @@ class CertificateScannerActivity : AppCompatActivity(), ZXingScannerView.ResultH
         }
 
         val parts = resultText.split(RESULT_DELIMITER)
+        if(parts.size != 3) {
+            Toast.makeText(this, "Invalid Connection Data (parts)", Toast.LENGTH_LONG).show()
+            Log.d(TAG, "Invalid Connection Data (parts)\n$resultText")
+            return
+        }
+
         var ip = parts[0]
         val fingerprint = parts[1]
         val fingerprintCleared = fingerprint.replace(":", "").toLowerCase()
+        val secret = parts[2]
         val port = 0
 
-        // run asynchronously to avoid freezing of main thread
-        Runnable {
-            // create new key pair
-            // (we had to initalize the key store somewhere, so why not here ...)
-            Cryptography.instance.createKeys()
+        val saved = ServerPreferences.instance.saveServerConnectionData(ip, fingerprintCleared, secret, port)
 
-            val saved = ServerPreferences.instance.saveServerConnectionData(ip, fingerprintCleared, port)
+        if(saved) {
+            Log.d(TAG, "Saved Server Connection Details")
+            ConnectionHandler.instance.updateServerPreferences()
+        }
+        else {
+            Toast.makeText(this@CertificateScannerActivity, "Error Saving Server Connection Details", Toast.LENGTH_LONG).show()
+            Log.e(TAG, "Error Saving Server Connection Details")
+        }
 
-            if(saved) {
-                Log.d(TAG, "Saved Server Connection Details")
-                ConnectionHandler.instance.updateServerPreferences()
-            }
-            else {
-                Toast.makeText(this@CertificateScannerActivity, "Error Saving Server Connection Details", Toast.LENGTH_LONG).show()
-                Log.e(TAG, "Error Saving Server Connection Details")
-            }
-        }.run()
-
-        // returns before crypto is done
     }
 
     private val MY_PERMISSIONS_REQUEST_CAMERA: Int = 42

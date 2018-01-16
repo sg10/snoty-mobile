@@ -16,6 +16,7 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.*
 import me.snoty.mobile.Cryptography
 import me.snoty.mobile.R
@@ -152,9 +153,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateNotificationsHistoryList() {
-        if (HistoryList.instance != null) {
-            listAdapter?.clear()
-            listAdapter?.addAll(HistoryList.instance?.historyList)
+        this.run {
+            if (HistoryList.instance != null) {
+                listAdapter?.clear()
+                listAdapter?.addAll(HistoryList.instance?.historyList)
+            }
         }
     }
 
@@ -194,6 +197,8 @@ class MainActivity : AppCompatActivity() {
         this.runOnUiThread { // necessary to update views from other threads
             updateNotificationsHistoryList()
 
+            updateStatusProgresses()
+
             val label = findViewById<TextView>(R.id.statusTextView)
             if(ConnectionHandler.instance.connected) {
                 label.setTextColor(Color.BLACK)
@@ -210,6 +215,20 @@ class MainActivity : AppCompatActivity() {
                 label.setTextColor(Color.RED)
                 label.text = ConnectionHandler.instance.lastConnectionError?.name ?: ""
             }
+        }
+    }
+
+    fun updateStatusProgresses() {
+        val textListener = findViewById<CheckedTextView>(R.id.statusTextListener)
+        val progressListener = findViewById<ProgressBar>(R.id.progressBarListener)
+
+        if(checkListenerPermissionGranted()) {
+            textListener.setTextColor(Color.GREEN)
+            progressListener.visibility = View.GONE
+        }
+        else {
+            textListener.setTextColor(Color.RED)
+            progressListener.visibility = View.VISIBLE
         }
     }
 

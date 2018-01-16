@@ -12,6 +12,7 @@ import me.snoty.mobile.server.protocol.NetworkPacket
 import java.util.*
 import android.os.Looper
 import me.snoty.mobile.activities.MainActivity
+import me.snoty.mobile.server.NetworkPacketHandler
 
 
 /**
@@ -66,6 +67,8 @@ class ConnectionHandler {
         else {
             Log.e(TAG, "did not update server fingerprint in trust manager")
         }
+
+        NetworkPacketHandler.instance.setSecret(ServerPreferences.instance.getSecret())
 
         requestDelegator?.updateServerPreferences()
     }

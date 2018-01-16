@@ -10,6 +10,8 @@ class NotificationRemovedPacket : NetworkPacket {
 
     var id : String? = null
 
+    var secret: String = ""
+
     constructor() {}
 
     constructor(id : String, sbn : StatusBarNotification) {

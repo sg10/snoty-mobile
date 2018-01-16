@@ -35,6 +35,7 @@ class ServerPreferences {
     }
 
     private val KEY_SERVER_FINGERPRINT = "SERVER_FINGERPRINT"
+    private val KEY_SERVER_SECRET = "SERVER_SECRET"
     private val KEY_SERVER_IP = "SERVER_IP"
 
 
@@ -42,11 +43,16 @@ class ServerPreferences {
 
     fun getFingerprint() : String {
         init()
-        val fingerprintEncrypted = prefs?.getString(KEY_SERVER_FINGERPRINT, "") ?: ""
-        if(fingerprintEncrypted != "") {
-            val fingerprintDecrypted = Cryptography.instance.decryptData(fingerprintEncrypted)
-            Log.d(TAG, "decrypted value: " + fingerprintDecrypted)
-            return fingerprintDecrypted
+        return prefs?.getString(KEY_SERVER_FINGERPRINT, "") ?: ""
+    }
+
+    fun getSecret() : String {
+        init()
+        val secretEncrypted = prefs?.getString(KEY_SERVER_SECRET, "") ?: ""
+        if(secretEncrypted != "") {
+            val secretDecrypted = Cryptography.instance.attemptDecryptData(secretEncrypted)
+            Log.d(TAG, "decrypted secret: " + secretDecrypted)
+            return secretDecrypted
         }
 
         return ""
@@ -62,7 +68,8 @@ class ServerPreferences {
         return 9096
     }
 
-    fun saveServerConnectionData(ip : String, fingerprint : String, port : Int) : Boolean {
+    fun saveServerConnectionData(ip : String, fingerprint : String,
+                                 secret : String, port : Int) : Boolean {
         Log.d(TAG, "trying to save connection data ...")
         init()
         val editor = prefs?.edit()
@@ -71,11 +78,12 @@ class ServerPreferences {
             return false
         }
 
-        val fingerprintEncrypted = Cryptography.instance.encryptData(fingerprint)
+        editor.putString(KEY_SERVER_FINGERPRINT, fingerprint)
 
-        Log.d(TAG, "encrypted fingerprint: "+fingerprintEncrypted)
+        val secretEncrypted = Cryptography.instance.attemptEncryptData(secret)
+        Log.d(TAG, "encrypted secret: "+secretEncrypted)
+        editor.putString(KEY_SERVER_SECRET, secretEncrypted)
 
-        editor.putString(KEY_SERVER_FINGERPRINT, fingerprintEncrypted)
         editor.putString(KEY_SERVER_IP, ip)
 
         val saved = editor.commit()
