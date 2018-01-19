@@ -26,9 +26,7 @@ class NotificationsListAdapter(context: Context) : ArrayAdapter<NotificationHist
         super.insert(notification, 0)
     }
 
-    @SuppressLint("NewApi")
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View? {
-
         var v: View? = convertView
 
         if (v == null) {
@@ -41,7 +39,6 @@ class NotificationsListAdapter(context: Context) : ArrayAdapter<NotificationHist
         if (notification != null) {
             val title = v!!.findViewById(R.id.titleTextView) as TextView
             val text = v!!.findViewById(R.id.textTextView) as TextView
-            val icon = v!!.findViewById(R.id.icon) as ImageView
 
             title.text = notification.title
             text.text = notification.text
@@ -55,8 +52,6 @@ class NotificationsListAdapter(context: Context) : ArrayAdapter<NotificationHist
             else if(notification.action == Repository.Companion.Action.UPDATED) {
                 title.setTextColor(Color.YELLOW)
             }
-
-            //icon?.setImageIcon(notification.)
         }
 
         return v

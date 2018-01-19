@@ -6,18 +6,20 @@ import android.preference.PreferenceManager
 import android.security.KeyPairGeneratorSpec
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
+import android.util.Base64
 import android.util.Log
-import me.snoty.mobile.activities.MainActivity
-import me.snoty.mobile.notifications.ListenerService
 import java.io.IOException
 import java.math.BigInteger
 import java.nio.charset.Charset
 import java.security.*
 import java.security.cert.CertificateException
 import java.security.spec.AlgorithmParameterSpec
+import java.security.spec.MGF1ParameterSpec
 import java.security.spec.X509EncodedKeySpec
 import java.util.*
 import javax.crypto.Cipher
+import javax.crypto.spec.OAEPParameterSpec
+import javax.crypto.spec.PSource
 import javax.security.auth.x500.X500Principal
 
 
@@ -32,15 +34,18 @@ class Cryptography {
 
     companion object {
         private val TAG = "Crypto"
-
         val instance: Cryptography by lazy { Holder.INSTANCE }
     }
 
-    val KEYSTORE_PROVIDER_ANDROID_KEYSTORE = "AndroidKeyStore"
-    val TYPE_RSA = "RSA"
-    val PREFS_PUBLIC_KEY = "EncryptionPublicKey"
+    private val KEYSTORE_PROVIDER_ANDROID_KEYSTORE = "AndroidKeyStore"
+    private val TYPE_RSA = "RSA"
+    private val PREFS_PUBLIC_KEY = "EncryptionPublicKey"
+    private val KEY_SIZE = 2048
+    private val TRANSFORMATION = "RSA/ECB/OAEPwithSHA-256andMGF1Padding"
+    private val KEY_ALIAS = "snoty_crypto_key"
+    private val KEY_SPEC = OAEPParameterSpec("SHA-256", "MGF1",
+            MGF1ParameterSpec.SHA1, PSource.PSpecified.DEFAULT)
 
-    private val mAlias = "cryptoKey"
 
     private var publicKey : PublicKey? = null
 
@@ -48,67 +53,61 @@ class Cryptography {
 
     @Throws(NoSuchProviderException::class, NoSuchAlgorithmException::class, InvalidAlgorithmParameterException::class)
     fun createKeys() {
-        Log.d(TAG, "checking if keypair already exists")
-        if(loadPrivateKey() != null && loadPrivateKey() != null) {
-            Log.d(TAG, "found public (shared prefs) and private key (keystore)")
-            return
-        }
+        if (keysAlreadyGenerated()) return
 
         Log.d(TAG, "generating key pair")
-
-        val start = GregorianCalendar()
-        val end = GregorianCalendar()
-        end.add(Calendar.YEAR, 1)
-
-        val context : Context? = MainActivity.instance ?: ListenerService.instance
 
         val kpGenerator = KeyPairGenerator
                 .getInstance(TYPE_RSA, KEYSTORE_PROVIDER_ANDROID_KEYSTORE)
 
         val spec: AlgorithmParameterSpec
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+        val context : Context = ContextHelper.get()
 
+        val start = GregorianCalendar()
+        val end = GregorianCalendar()
+        end.add(Calendar.YEAR, 1)
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             spec = KeyPairGeneratorSpec.Builder(context)
-                    .setAlias(mAlias)
-                    .setSubject(X500Principal("CN=" + mAlias))
+                    .setAlias(KEY_ALIAS)
+                    .setSubject(X500Principal("CN=" + KEY_ALIAS))
                     .setSerialNumber(BigInteger.valueOf(1337))
                     .setStartDate(start.time)
                     .setEndDate(end.time)
+                    .setKeySize(KEY_SIZE)
                     .build()
-
         } else {
-            spec = KeyGenParameterSpec.Builder(mAlias, KeyProperties.PURPOSE_DECRYPT or KeyProperties.PURPOSE_ENCRYPT)
-                    .setDigests(KeyProperties.DIGEST_NONE)
-                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1)
-                    .setCertificateSubject(X500Principal("CN=" + mAlias))
+            spec = KeyGenParameterSpec.Builder(KEY_ALIAS, KeyProperties.PURPOSE_DECRYPT)
+                    .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
+                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_OAEP)
+                    .setCertificateSubject(X500Principal("CN=" + KEY_ALIAS))
                     .setCertificateSerialNumber(BigInteger.valueOf(1337))
                     .setCertificateNotBefore(start.time)
                     .setCertificateNotAfter(end.time)
+                    .setKeySize(KEY_SIZE)
                     .build()
         }
 
         kpGenerator.initialize(spec)
-        Log.d(TAG, "saved private key to key chain")
-
         val kp = kpGenerator.generateKeyPair()
-        Log.d(TAG, "Public Key is: " + kp.public.toString())
+        Log.d(TAG, "saved private key to keystore")
 
         publicKey = kp.public
         savePublicKey(kp.public)
-
         Log.d(TAG, "saved public key to shared prefs")
     }
 
-    private fun getTransformation(): String {
-        var transformation = "RSA/ECB/PKCS1Padding"
-        /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            transformation = "RSA/ECB/OAEPPadding"
-        }*/
-        return transformation
+    fun keysAlreadyGenerated(): Boolean {
+        Log.d(TAG, "checking if keypair already exists")
+        if (loadPrivateKey() != null && loadPrivateKey() != null) {
+            Log.d(TAG, "found public (shared prefs) and private key (keystore)")
+            return true
+        }
+        return false
     }
 
-    private fun decryptData(inputHexStr : String) : String {
+    private fun decryptData(inputStr: String) : String {
         val privateKey = loadPrivateKey()
 
         if(privateKey == null) {
@@ -119,10 +118,10 @@ class Cryptography {
             Log.d(TAG, "private key loaded")
         }
 
-        val data = Utils.hexStringToByteArray(inputHexStr)
+        val data = Base64.decode(inputStr, Base64.DEFAULT)
 
-        val cipher = Cipher.getInstance(getTransformation())
-        cipher.init(Cipher.DECRYPT_MODE, privateKey)
+        val cipher = Cipher.getInstance(TRANSFORMATION)
+        cipher.init(Cipher.DECRYPT_MODE, privateKey, KEY_SPEC)
 
         val decryptedBytes = cipher.doFinal(data)
 
@@ -144,12 +143,12 @@ class Cryptography {
 
         val data = inputStr.toByteArray(charset)
 
-        val cipher = Cipher.getInstance(getTransformation())
-        cipher.init(Cipher.ENCRYPT_MODE, publicKey)
+        val cipher = Cipher.getInstance(TRANSFORMATION)
+        cipher.init(Cipher.ENCRYPT_MODE, publicKey, KEY_SPEC)
 
         val encryptedBytes = cipher.doFinal(data)
 
-        return Utils.byteArrayToHexString(encryptedBytes)
+        return Base64.encodeToString(encryptedBytes, Base64.DEFAULT)
     }
 
     private fun loadPrivateKey(): PrivateKey? {
@@ -157,10 +156,10 @@ class Cryptography {
 
         ks.load(null)
 
-        val entry = ks.getEntry(mAlias, null)
+        val entry = ks.getEntry(KEY_ALIAS, null)
 
         if (entry == null) {
-            Log.w(TAG, "No key found under alias: " + mAlias)
+            Log.w(TAG, "No key found under alias: " + KEY_ALIAS)
             return null
         }
 
@@ -172,8 +171,8 @@ class Cryptography {
         return entry.privateKey
     }
 
-    private fun loadPublicKey() {
-        val context : Context? = MainActivity.instance ?: ListenerService.instance
+    private fun loadPublicKey() : PublicKey? {
+        val context : Context = ContextHelper.get()
 
         if(publicKey == null && context != null) {
             Log.d(TAG, "loading public key from shared preferences")
@@ -181,21 +180,24 @@ class Cryptography {
                     .getString(PREFS_PUBLIC_KEY, "")
             if(publicKeyString == "") {
                 createKeys()
-                return
+                return null
             }
             val keyBytes = Utils.hexStringToByteArray(publicKeyString)
             this.publicKey = KeyFactory.getInstance("RSA")
                     .generatePublic(X509EncodedKeySpec(keyBytes)) ?: this.publicKey
 
             Log.d(TAG, "Public key is  " + publicKey)
+            return publicKey
         }
         else if(context == null) {
             Log.d(TAG, "tried to load public key, but no context available")
         }
+
+        return null
     }
 
     private fun savePublicKey(publicKey: PublicKey) {
-        val context : Context? = MainActivity.instance ?: ListenerService.instance
+        val context : Context = ContextHelper.get()
 
         if(context != null) {
             val publicKeyString = Utils.byteArrayToHexString(publicKey.encoded)

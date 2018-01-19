@@ -4,6 +4,7 @@ import android.util.Log
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import me.snoty.mobile.ServerPreferences
 import me.snoty.mobile.server.protocol.NetworkPacket
 import me.snoty.mobile.server.protocol.NotificationPostedPacket
 import me.snoty.mobile.server.protocol.NotificationRemovedPacket
@@ -15,6 +16,11 @@ class NetworkPacketHandler private constructor() {
 
     private object Holder { val INSTANCE = NetworkPacketHandler() }
 
+    companion object {
+        private val TAG = "NetPackHan"
+        val instance: NetworkPacketHandler by lazy { Holder.INSTANCE }
+    }
+
     private var secret = ""
     fun setSecret(newSecret: String) {
         if(newSecret != "") {
@@ -25,12 +31,6 @@ class NetworkPacketHandler private constructor() {
         }
     }
 
-    companion object {
-        private val TAG = "NetPackHan"
-
-        val instance: NetworkPacketHandler by lazy { Holder.INSTANCE }
-    }
-
     private val objectMapper = ObjectMapper()
     private val prettyObjectMapper = ObjectMapper()
 
@@ -38,6 +38,8 @@ class NetworkPacketHandler private constructor() {
         Log.d(TAG, "initializing network packet handler")
         objectMapper.disable(SerializationFeature.INDENT_OUTPUT)
         prettyObjectMapper.enable(SerializationFeature.INDENT_OUTPUT)
+
+        setSecret(ServerPreferences.instance.getSecret())
     }
 
     fun toJSON(packet : NetworkPacket) : String {

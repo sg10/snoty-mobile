@@ -1,6 +1,7 @@
 package me.snoty.mobile
 
 import android.util.Log
+import android.view.View
 import java.math.BigInteger
 import java.security.MessageDigest
 import java.security.cert.X509Certificate
@@ -12,8 +13,6 @@ import java.util.*
 class Utils {
 
     companion object {
-
-        private val TAG = "Utils"
 
         fun getCertificateFingerprint(cert: X509Certificate) : String {
             val md : MessageDigest = MessageDigest.getInstance("SHA-256")
@@ -33,6 +32,10 @@ class Utils {
 
         fun hexStringToByteArray(s : String) : ByteArray {
             return BigInteger(s,16).toByteArray()
+        }
+
+        fun viewGoneIfTrue(b : Boolean) : Int {
+            return if(b) View.GONE else View.VISIBLE
         }
 
     }

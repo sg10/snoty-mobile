@@ -2,8 +2,10 @@ package me.snoty.mobile.notifications
 
 import android.util.Log
 import android.app.RemoteInput
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import me.snoty.mobile.ContextHelper
 
 
 /**
@@ -29,7 +31,7 @@ class Actions {
             ListenerService.instance?.cancelNotification(sbn?.key)
         }
         catch(ex : Exception) {
-            Log.w(TAG, ex)
+            Log.w(TAG, ex.message)
         }
     }
 
@@ -57,7 +59,7 @@ class Actions {
                     }
                     RemoteInput.addResultsToIntent(action.remoteInputs, localIntent, localBundle)
                 }
-                pendingIntent.send(ListenerService.instance, 0, localIntent)
+                pendingIntent.send(ContextHelper.get(), 0, localIntent)
                 Log.d(TAG, "sent intent for action")
             }
             catch(ex : Exception) {

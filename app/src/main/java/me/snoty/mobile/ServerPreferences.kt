@@ -38,6 +38,7 @@ class ServerPreferences {
     private val KEY_SERVER_SECRET = "SERVER_SECRET"
     private val KEY_SERVER_IP = "SERVER_IP"
 
+    private val PORT = 9096
 
     private var prefs : SharedPreferences? = null
 
@@ -65,7 +66,7 @@ class ServerPreferences {
 
     fun getPort() : Int {
         init()
-        return 9096
+        return PORT
     }
 
     fun saveServerConnectionData(ip : String, fingerprint : String,
@@ -93,13 +94,8 @@ class ServerPreferences {
 
     private fun init() {
         if(prefs == null) {
-            val context : Context? = ListenerService.instance ?: MainActivity.instance
-            if(context != null) {
-                prefs = PreferenceManager.getDefaultSharedPreferences(context)
-            }
-            else {
-                Log.w(TAG, "could not open shared preferences, no instance of MainActivity or ListenerService")
-            }
+            val context : Context = ContextHelper.get()
+            prefs = PreferenceManager.getDefaultSharedPreferences(context)
         }
     }
 

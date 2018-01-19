@@ -5,13 +5,15 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
+import me.snoty.mobile.ContextHelper
+import me.snoty.mobile.Prerequisites
 import me.snoty.mobile.server.connection.ConnectionHandler
 
 
 /**
  * Created by Stefan on 27.12.2017.
  */
-class ListenerHandler {
+class ListenerServiceHandler {
 
     companion object {
 
@@ -22,7 +24,12 @@ class ListenerHandler {
 
             var listenerInstance = ListenerService.instance
 
-            if(listenerInstance == null) {
+            if(! Prerequisites.isFullyInitialized()) {
+                Toast
+                    .makeText(ContextHelper.get(), "Please take initialize first", Toast.LENGTH_LONG)
+                    .show()
+            }
+            else if(listenerInstance == null) {
                 Log.d(TAG, "cold start")
                 val serviceIntent = Intent(context, ListenerService::class.java)
                 if (Build.VERSION.SDK_INT >= 26) {
@@ -60,7 +67,7 @@ class ListenerHandler {
                 Log.e(TAG, "unknown error")
             }
 
-            ConnectionHandler.instance.disconnect()
+            // ConnectionHandler.instance.disconnect()
         }
     }
 }

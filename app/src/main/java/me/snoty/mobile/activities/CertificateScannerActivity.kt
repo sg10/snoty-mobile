@@ -80,7 +80,7 @@ class CertificateScannerActivity : AppCompatActivity(), ZXingScannerView.ResultH
 
         if(saved) {
             Log.d(TAG, "Saved Server Connection Details")
-            ConnectionHandler.instance.updateServerPreferences()
+            ConnectionHandler.instance.updateServerPreferences(fingerprintCleared, secret)
         }
         else {
             Toast.makeText(this@CertificateScannerActivity, "Error Saving Server Connection Details", Toast.LENGTH_LONG).show()

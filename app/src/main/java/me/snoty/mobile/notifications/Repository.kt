@@ -30,21 +30,21 @@ class Repository private constructor(){
 
         enum class Action { CREATED, UPDATED, REMOVED }
 
-        fun addProcessor(processor: ProcessorInterface) {
+        private fun addProcessor(processor: ProcessorInterface) {
             try {
                 removeProcessor(processor)
                 processorsList.add(processor)
-                Log.d(TAG, "Plugin loaded: " + processor::class.java.simpleName)
+                Log.d(TAG, "Processor loaded: " + processor::class.java.simpleName)
             } catch(cex : ConcurrentModificationException) {
                 cex.printStackTrace()
             }
         }
 
-        fun removeProcessor(processor: ProcessorInterface) {
+        private fun removeProcessor(processor: ProcessorInterface) {
             processorsList.forEach {
                 val className = it::class.java.simpleName
                 if(className == processor::class.java.simpleName) {
-                    Log.d(TAG, "Plugin $className was already added, deleting first")
+                    Log.d(TAG, "Processor $className was already added, deleting first")
                     processorsList.remove(it)
                 }
             }
